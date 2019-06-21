@@ -1,0 +1,112 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use Math::Prime::Util qw(is_prime_power euler_phi);
+use DBI;
+
+my $DB_TYPE = 'dbi:SQLite';
+my $DB_CONF = { RaiseError => 1, AutoCommit => 0 };
+
+my ($DB_NAME, $CREATE_TABLES) = process_options();
+
+my $dbh = DBI->connect("$DB_TYPE:dbname=$DB_NAME", q[], q[], $DB_CONF);
+my $sth;
+
+my $TABLE   = 'difference_set';
+my $COLUMNS = q[order_, base, exponent, modulus, n_planes, deltas];
+my $KEY     = q[order_];
+my $PLACEHOLDERS = $COLUMNS; $PLACEHOLDERS =~ s/[^ ,]+/?/g;
+
+if ($CREATE_TABLES) {
+    $sth =
+        $dbh->prepare(
+            qq[CREATE TABLE $TABLE (] .
+            q[  order_   integer NOT NULL PRIMARY KEY,] .
+            q[  base     integer NOT NULL,] .
+            q[  exponent integer NOT NULL,] .
+            q[  modulus  integer NOT NULL,] .
+            q[  n_planes integer NOT NULL,] .
+            q[  deltas   text    NOT NULL] .
+            q[)]
+        );
+    $sth->execute;
+}
+
+while (<<>>) {
+    chomp;
+    if (/^([0-9]+(?:\s+[0-9]+)*)\s*\(mod ([0-9]+)\)\s*\z/) {
+        my $modulus  = $2;
+        my $residues = $1;
+        my $order    = $residues =~ s/\s+/ /g;
+        my $expected = $order * ($order + 1) + 1;
+        if ($expected != $modulus) {
+            warn
+                "$.: too ",
+                $expected < $modulus? 'few': 'many',
+                " elements (ignored)\n";
+            next;
+        }
+        my $exponent = is_prime_power($order, \my $base);
+        if (!$exponent) {
+            warn "$.: order $order is not a prime power (ignored)\n";
+            next;
+        }
+        my $n_planes = euler_phi($modulus) / (3 * $exponent);
+        $n_planes == int $n_planes or
+            die "assertion failed: $n_planes: n_planes not integer";
+        my @r = split / /, $residues;
+        if ($r[0] + 1 != $r[1]) {
+            warn "$.: second element is not first plus one (ignored)\n";
+            next;
+        }
+        my @d = map { $r[$_] - $r[$_-1] } 2 .. $#r;
+        if (grep { $_ <= 0 } @d) {
+            warn "$.: elements are not sorted (warning)\n";
+        }
+        $sth = $dbh->prepare( qq[DELETE FROM $TABLE WHERE $KEY = ?] );
+        $sth->execute($order);
+        $sth =
+            $dbh->prepare(
+                qq[INSERT into $TABLE ($COLUMNS) VALUES ($PLACEHOLDERS)]
+            );
+        $sth->execute(
+            $order, $base, $exponent, $modulus, $n_planes, "@d"
+        );
+    }
+    else {
+        substr($_, 40) = '...' if 44 < length $_;
+        warn "$.: $_: strange input (ignored)\n";
+    }
+}
+$dbh->commit;
+
+$sth = $dbh->prepare( qq[SELECT COUNT(*) FROM $TABLE] );
+$sth->execute;
+my ($count) = $sth->fetchrow_array;
+$sth->finish;
+
+$dbh->disconnect;
+
+my $s = 1 == $count? q[]: q[s];
+print "$DB_NAME has now $count set$s\n";
+
+sub process_options {
+    my $USAGE = "usage: fill_dpds [-c|-C] [-f dbname] input...\n";
+    my $db_name = 'dpds.sqlite';
+    my $create  = 0;
+    while (@ARGV && $ARGV[0] =~ /^-(.+)/s) {
+        my $opt = $1;
+        shift @ARGV;
+        last if $opt eq q[-];
+        $create  =            3, next if $opt eq 'c';
+        $create  =            1, next if $opt eq 'C';
+        $db_name =           $1, next if $opt =~ /^f(.+)\z/s;
+        $db_name = shift(@ARGV), next if $opt eq 'f' && @ARGV;
+        die $USAGE;
+    }
+    if (!($create & 2) xor -e $db_name) {
+        die "$db_name: ", $create & 2? "file exists\n": "nonexistent\n";
+    }
+    return ($db_name, $create & 1);
+}

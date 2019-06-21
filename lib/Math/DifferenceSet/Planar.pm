@@ -116,6 +116,12 @@ sub _sort_residues {
     return \@residues;
 }
 
+sub _residues_from_deltas {
+    my $sum = 0;
+    my @residues = map { $sum += $_ } 0, 1, split / /, $_[0];
+    return \@residues;
+}
+
 # print "ok" if Math::DifferenceSet::Planar->available(9);
 # print "ok" if Math::DifferenceSet::Planar->available(3, 2);
 sub available {
@@ -137,14 +143,14 @@ sub new {
         my $key = defined($exponent)? "$base, $exponent": $order;
         croak "PDS($key) not available";
     }
-    my @residues = split / /, $pds->residues;
+    my $residues = _residues_from_deltas($pds->deltas);
     return bless [
         $pds->order,
         $pds->base,
         $pds->exponent,
         $pds->modulus,
         $pds->n_planes,
-        \@residues,
+        $residues,
         [],
     ], $class;
 }
@@ -211,14 +217,14 @@ sub iterate_available_sets {
     return sub {
         my $pds = $dit->();
         return undef if !$pds;
-        my @residues = split / /, $pds->residues;
+        my $residues = _residues_from_deltas($pds->deltas);
         return bless [
             $pds->order,
             $pds->base,
             $pds->exponent,
             $pds->modulus,
             $pds->n_planes,
-            \@residues,
+            $residues,
             [],
         ], $class;
     };

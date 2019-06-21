@@ -53,7 +53,7 @@ __PACKAGE__->table("difference_set");
   data_type: 'integer'
   is_nullable: 0
 
-=head2 residues
+=head2 deltas
 
   data_type: 'text'
   is_nullable: 0
@@ -71,7 +71,7 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 0 },
   "n_planes",
   { data_type => "integer", is_nullable => 0 },
-  "residues",
+  "deltas",
   { data_type => "text", is_nullable => 0 },
 );
 
