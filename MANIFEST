@@ -1,0 +1,10 @@
+Changes
+MANIFEST
+Makefile.PL
+README
+lib/Math/DifferenceSet/Planar.pm
+lib/Math/DifferenceSet/Planar/Data.pm
+lib/Math/DifferenceSet/Planar/Schema.pm
+lib/Math/DifferenceSet/Planar/Schema/Result/DifferenceSet.pm
+share/pds.sqlite
+t/01_basics.t

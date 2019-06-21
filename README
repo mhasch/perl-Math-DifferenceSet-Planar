@@ -1,0 +1,30 @@
+Math-DifferenceSet-Planar version 0.001
+=======================================
+
+A planar difference set of order n is a set of n+1 modular
+integers with the property ...
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This module requires these other modules and libraries:
+
+   DBIx::Class
+   DBD::SQLite
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2019 by Martin Becker, Blaubeuren.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.010 or,
+at your option, any later version of Perl 5 you may have available.
+
