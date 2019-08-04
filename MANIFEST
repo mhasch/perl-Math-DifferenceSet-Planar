@@ -13,3 +13,7 @@ lib/Math/DifferenceSet/Planar/Schema.pm
 lib/Math/DifferenceSet/Planar/Schema/Result/DifferenceSet.pm
 share/pds.db
 t/01_basics.t
+t/90_pod.t
+t/91_pod_cover_cp.t
+t/99_signature.t
+t/lib/Test/MyUtils.pm

@@ -496,7 +496,7 @@ set the canonical representative of the plane.
 
 =item I<$VERSION>
 
-C<$VERSION> is the version number of the module.
+C<$VERSION> is the version number of the module and of the distribution.
 
 =back
 
@@ -590,12 +590,12 @@ the module.
 
 =item I<set_database>
 
-Although normally set automatically behind the scenes, the database of
-sample difference sets may be reset to a known alternative file location.
-C<Math::DifferenceSet::Planar-E<gt>set_database($filename) does this and
-tries to open the file for subsequent lookups.  On success, it returns
-the number of available sets in the database.  On failure, it raises
-an exception.
+Although normally set automatically behind the scenes, the database
+of sample difference sets may be reset to a known alternative file
+location.  C<Math::DifferenceSet::Planar-E<gt>set_database($filename)>
+does this and tries to open the file for subsequent lookups.  On success,
+it returns the number of available sets in the database.  On failure,
+it raises an exception.
 
 =item I<list_databases>
 
@@ -711,6 +711,22 @@ of a rotator base of the set.  The iterator returns a zero value when
 it is exhausted.
 
 =back
+
+=head1 EXAMPLES
+
+The distribution contains an I<examples> directory with several
+self-documenting command line tools for generating and manipulating
+planar difference sets, and for displaying available databases.
+
+=head1 OTHER FILES
+
+The library is packaged together with a small SQLite version 3 database
+named F<pds.db>.  This is installed in a distribution-specific F<share>
+directory and accessed read-only at run-time.
+
+The same directory can hold additional databases from extension projects.
+Larger databases, as well as tools to create them, will be distributed
+separately.
 
 =head1 DIAGNOSTICS
 
