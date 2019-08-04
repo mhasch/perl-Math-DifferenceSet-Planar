@@ -26,30 +26,27 @@ my %versions = map {
 );
 
 WriteMakefile(
-    NAME              => 'Math::DifferenceSet::Planar',
-    VERSION_FROM      => 'lib/Math/DifferenceSet/Planar.pm',
-    PREREQ_PM         => {
-        'Carp',       => 0,
-        'DBD::SQLite' => 0,
-        'DBIx::Class' => 0,
-        'File::Share' => 0,
+    NAME                => 'Math::DifferenceSet::Planar',
+    VERSION_FROM        => 'lib/Math/DifferenceSet/Planar.pm',
+    PREREQ_PM           => {
+        'Carp',         => 0,
+        'DBD::SQLite'   => '1.00',
+        'DBIx::Class'   => 0,
+        'File::Share'   => 0,
+        'File::Spec'    => 0,
+        'Math::Prime::Util' => '0.59',
     },               
-    ABSTRACT_FROM     => 'lib/Math/DifferenceSet/Planar.pm',
-    AUTHOR            => 'Martin Becker <becker-cpan-mp@cozap.com>',
-    SIGN              => 1,
-    LICENSE           => 'perl',
-    META_MERGE        => { 
-#       'meta-spec'   => {
-#           url       => 'http://search.cpan.org/perldoc?CPAN::Meta::Spec',
-#           version   => 2,
-#       },
-        provides      => \%versions,
-    },        
-    MIN_PERL_VERSION  => '5.010',
-    BUILD_REQUIRES    => {
-        'ExtUtils::MakeMaker' => '7.06',
-        'File::ShareDir'      => 0,
-        'Test::More'          => 0,
+    ABSTRACT_FROM       => 'lib/Math/DifferenceSet/Planar.pm',
+    AUTHOR              => 'Martin Becker <becker-cpan-mp (at) cozap.com>',
+    SIGN                => 1,
+    LICENSE             => 'perl',
+    META_MERGE          => { 
+        provides        => \%versions,
+    },                  
+    MIN_PERL_VERSION    => '5.010',
+    BUILD_REQUIRES      => {
+        'ExtUtils::MakeMaker'   => '7.06',
+        'File::ShareDir'        => 0,
+        'Test::More'            => 0,
     }, 
 );
-

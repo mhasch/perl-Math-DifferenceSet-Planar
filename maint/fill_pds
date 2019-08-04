@@ -35,7 +35,7 @@ if ($CREATE_TABLES) {
 
 while (<<>>) {
     chomp;
-    if (/^([0-9]+(?:\s+[0-9]+)*)\s*\(mod ([0-9]+)\)\s*\z/) {
+    if (/^([0-9][0-9\s]*[0-9])\s*\(mod ([0-9]+)\)\s*\z/) {
         my $modulus  = $2;
         my $residues = $1;
         my $order    = $residues =~ s/\s+/ /g;
@@ -92,8 +92,8 @@ my $s = 1 == $count? q[]: q[s];
 print "$DB_NAME has now $count set$s\n";
 
 sub process_options {
-    my $USAGE = "usage: fill_dpds [-c|-C] [-f dbname] input...\n";
-    my $db_name = 'dpds.sqlite';
+    my $USAGE = "usage: fill_pds [-c|-C] [-f dbname] input...\n";
+    my $db_name = 'pds.db';
     my $create  = 0;
     while (@ARGV && $ARGV[0] =~ /^-(.+)/s) {
         my $opt = $1;

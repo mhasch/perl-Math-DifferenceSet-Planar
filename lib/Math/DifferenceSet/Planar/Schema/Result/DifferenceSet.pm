@@ -2,7 +2,8 @@ package Math::DifferenceSet::Planar::Schema::Result::DifferenceSet;
 
 =head1 NAME
 
-Math::DifferenceSet::Planar::Schema::Result::DifferenceSet
+Math::DifferenceSet::Planar::Schema::Result::DifferenceSet -
+planar difference set database backend result class definition.
 
 =cut
 
@@ -88,3 +89,33 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("order_");
 
 1;
+
+=head1 SEE ALSO
+
+=over 4
+
+=item *
+
+L<Math::DifferenceSet::Planar::Schema> - schema class. 
+
+=back
+
+=head1 AUTHOR
+
+Martin Becker, E<lt>becker-cpan-mp I<at> cozap.comE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2019 by Martin Becker, Blaubeuren.  All rights reserved.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.10.0 or,
+at your option, any later version of Perl 5 you may have available.
+
+=head1 DISCLAIMER OF WARRANTY
+
+This library is distributed in the hope that it will be useful, but
+without any warranty; without even the implied warranty of merchantability
+or fitness for a particular purpose.
+
+=cut

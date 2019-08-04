@@ -2,9 +2,14 @@ Changes
 MANIFEST
 Makefile.PL
 README
+examples/pds_canonize
+examples/pds_multiply
+examples/pds_planes
+examples/pds_translate
+examples/show_databases
 lib/Math/DifferenceSet/Planar.pm
 lib/Math/DifferenceSet/Planar/Data.pm
 lib/Math/DifferenceSet/Planar/Schema.pm
 lib/Math/DifferenceSet/Planar/Schema/Result/DifferenceSet.pm
-share/pds.sqlite
+share/pds.db
 t/01_basics.t
