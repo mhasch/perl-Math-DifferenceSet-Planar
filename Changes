@@ -1,5 +1,9 @@
 Revision history for Perl extension Math::DifferenceSet::Planar.
 
+0.005   Tue, 06 Aug 2019 12:30:34 +0200
+        - more metadata fine-tuning
+        - tests no longer use nulldev (causing failures on windows)
+
 0.004   Tue, 06 Aug 2019 11:16:27 +0200
         - fixed dependency problem, rt-130259
 
