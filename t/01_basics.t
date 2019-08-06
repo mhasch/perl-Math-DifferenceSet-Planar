@@ -322,8 +322,16 @@ $c2 = eval { Math::DifferenceSet::Planar->set_database('NONEXISTENT.FILE') };
 is($c2, undef);
 like($@, qr/^bad database: file does not exist:/);
 
-my $devnull = File::Spec->devnull;
-$c2 = eval { Math::DifferenceSet::Planar->set_database($devnull) };
-is($c2, undef);
-like($@, qr/^bad database: query failed:/);
-
+my $tmpdb = File::Spec->catfile(File::Spec->rel2abs("t"), 'tmp.db');
+SKIP: {
+    if (open my $fh, '>', $tmpdb) {
+        close $fh;
+        $c2 = eval { Math::DifferenceSet::Planar->set_database($tmpdb) };
+        is($c2, undef);
+        like($@, qr/^bad database: query failed:/);
+        unlink $tmpdb;
+    }
+    else {
+        skip 'temporary file not writable', 2;
+    }
+}
