@@ -30,7 +30,7 @@ WriteMakefile(
     VERSION_FROM        => 'lib/Math/DifferenceSet/Planar.pm',
     PREREQ_PM           => {
         'Carp',         => 0,
-        'DBD::SQLite'   => '1.00',
+        'DBD::SQLite'   => '1.48',
         'DBIx::Class'   => 0,
         'File::Share'   => 0,
         'File::Spec'    => 0,
