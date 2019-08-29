@@ -87,6 +87,25 @@ sub iterate {
     return sub { $results->next };
 }
 
+sub iterate_properties {
+    my ($this, $min, $max) = @_;
+    my @sel = ();
+    my $dir = 'ASC';
+    if (defined($min) && defined($max) && $min > $max) {
+        ($min, $max, $dir) = ($max, $min, 'DESC');
+    }
+    push @sel, '>=' => $min if defined $min;
+    push @sel, '<=' => $max if defined $max;
+    my $results = $this->_data->search(
+        @sel? { order_ => { @sel } }: undef,
+        {
+            columns  => [qw(order_ base exponent modulus n_planes)],
+            order_by => "order_ $dir",
+        }
+    );
+    return sub { $results->next };
+}
+
 sub max_order { $_[0]->_data->get_column('order_')->max }
 sub count     { $_[0]->_data->search->count }
 
@@ -114,8 +133,8 @@ Math::DifferenceSet::Planar::Data.
   $data = Math::DifferenceSet::Planar->new('pds.db');
   $data = Math::DifferenceSet::Planar->new($full_path);
 
-  @databases = Math::DifferenceSet::Planar->list_databases;
-  $data = Math::DifferenceSet::Planar->new($databases[0]);
+  @databases = Math::DifferenceSet::Planar::Data->list_databases;
+  $data = Math::DifferenceSet::Planar::Data->new($databases[0]);
 
   $pds = $data->get(9);
 
@@ -196,6 +215,14 @@ C<$lo> is not defined, it is taken as zero. If C<$hi> is omitted or not
 defined, it is taken as plus infinity. If C<$lo> is greater than C<$hi>,
 they are swapped and the sequence is reversed, so that it is ordered by
 descending size.
+
+=item I<iterate_properties>
+
+If C<$data> is a Math::DifferenceSet::Planar::Data object,
+C<$data-E<gt>iterate_properties(@args)> behaves exactly like
+C<$data-E<gt>iterate(@args)>, except that the result records have no
+deltas component.  Using this method to browse difference set properties
+is more efficient than fetching complete records.
 
 =item I<max_order>
 
