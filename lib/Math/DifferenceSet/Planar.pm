@@ -17,7 +17,7 @@ use constant _F_ELEMENTS  => 5;     # elements arrayref
 use constant _F_ROTATORS  => 6;     # rotators arrayref, initially empty
 use constant _NFIELDS     => 7;
 
-our $VERSION = '0.005';
+our $VERSION = '0.006';
 
 our $_MAX_ENUM_ORDER = 1024;
 our $_LOG_MAX_ORDER = 21 * log(2);
@@ -379,7 +379,7 @@ Math::DifferenceSet::Planar - object class for planar difference sets
 
 =head1 VERSION
 
-This documentation refers to version 0.005 of Math::DifferenceSet::Planar.
+This documentation refers to version 0.006 of Math::DifferenceSet::Planar.
 
 =head1 SYNOPSIS
 
