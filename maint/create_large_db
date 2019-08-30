@@ -1,0 +1,7 @@
+#!/bin/sh
+
+DB=share/pds_6638.db
+
+rm -f "$DB"
+maint/fill_pds -c -f "$DB" data/pdx_*.txt
+

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+rm -f t/db/extra.db t/db/pds.db t/db/pds_40.db
+head -n 7 data/pdm_00002-04096.txt |
+    maint/fill_pds -c -f t/db/pds.db
+head -n 8 data/pdm_00002-04096.txt |tail -n 1 |
+    maint/fill_pds -c -f t/db/extra.db
+head -n 40 data/pdx_00002-04096.txt |
+    maint/fill_pds -c -f t/db/pds_40.db
+

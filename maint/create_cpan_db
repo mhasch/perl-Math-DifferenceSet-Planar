@@ -1,0 +1,5 @@
+#!/bin/sh
+
+rm -f share/pds.db
+maint/fill_pds -c -f share/pds.db data/pdm_00002-04096.txt
+

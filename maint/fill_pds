@@ -81,6 +81,10 @@ while (<<>>) {
 }
 $dbh->commit;
 
+$sth = $dbh->prepare( qq[VACUUM] );
+$sth->execute;
+$sth->commit;
+
 $sth = $dbh->prepare( qq[SELECT COUNT(*) FROM $TABLE] );
 $sth->execute;
 my ($count) = $sth->fetchrow_array;
