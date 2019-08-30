@@ -17,7 +17,7 @@ use constant _NFIELDS    => 1;
 our $VERSION  = '0.005';
 our @CARP_NOT = qw(Math::DifferenceSet::Planar);
 
-my $DIST_DIR = dist_dir('Math-DifferenceSet-Planar');
+our $DATABASE_DIR = dist_dir('Math-DifferenceSet-Planar');
 
 # ----- private accessor methods -----
 
@@ -26,11 +26,11 @@ sub _data { $_[0]->[_F_DATA] }
 # ----- class methods -----
 
 sub list_databases {
-    opendir my $dh, $DIST_DIR or return (); 
+    opendir my $dh, $DATABASE_DIR or return (); 
     my @files =
         map {
             my $is_standard = /^pds[_\W]/i? 1: 0;
-            my $path = File::Spec->rel2abs($_, $DIST_DIR);
+            my $path = File::Spec->rel2abs($_, $DATABASE_DIR);
             (-f $path)? [$_, $is_standard, -s _]: ()
         }
         grep { /\.db\z/i } readdir $dh;
@@ -47,8 +47,8 @@ sub list_databases {
 sub new {
     my $class = shift;
     my ($filename) = @_? @_: $class->list_databases
-        or croak "bad database: empty share directory: $DIST_DIR";
-    my $path = File::Spec->rel2abs($filename, $DIST_DIR);
+        or croak "bad database: empty share directory: $DATABASE_DIR";
+    my $path = File::Spec->rel2abs($filename, $DATABASE_DIR);
     -e $path or croak "bad database: file does not exist: $path";
     my $schema =
         Math::DifferenceSet::Planar::Schema->connect(
@@ -156,13 +156,19 @@ database of sample planar difference sets, hiding its implementation
 details.  It is used internally by Math::DifferenceSet::Planar to populate
 difference set objects.
 
-=head1 CLASS VARIABLE
+=head1 CLASS VARIABLES
 
 =over 4
 
 =item I<$VERSION>
 
 C<$VERSION> is the version number of the module.
+
+=item I<$DATABASE_DIR>
+
+C<$DATABASE_DIR> is the directory containing databases for this module.
+It is initialized automatically to refer to the location where its data
+has been installed.
 
 =back
 
