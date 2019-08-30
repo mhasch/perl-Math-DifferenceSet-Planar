@@ -3,39 +3,49 @@
 use strict;
 use warnings;
 use Math::DifferenceSet::Planar;
+use Math::Prime::Util qw(gcd);
 
 use constant PDS => Math::DifferenceSet::Planar::;
 
 $| = 1;
 
-if (@ARGV < 1 || 2 < @ARGV  || grep {!/^[1-9][0-9]*\z/} @ARGV) {
-    die "usage: pds_planes (p n|q)\n";
+if (@ARGV != 1 || $ARGV[0] !~ /^[1-9][0-9]*\z/) {
+    die "usage: random_pds order\n";
 }
 
-my $s0 = PDS->new(@ARGV);
+my ($q) = @ARGV;
 
-my $it = $s0->iterate_planes;
-while (my $s = $it->()) {
-    my @e = $s->elements;
-    print "@e\n";
+if ($q > PDS->available_max_order) {
+    die "$q: order is too large\n";
 }
+if (!PDS->available($q)) {
+    die "$q: order is not a prime power\n";
+}
+
+my $s0 = PDS->new($q);
+my $m  = $s0->modulus;
+my $t  = 1 + int rand($m - 1);
+while (gcd($t, $m) != 1) {
+    $t  = 1 + int rand($m - 1);
+}
+my $s1 = $s0->multiply($t)->translate(int rand $m);
+my @e  = $s1->elements_sorted;
+print "@e (mod $m)\n";
 
 __END__
 =head1 NAME
 
-pds_planes - enumerate planar difference sets of a given order
+random_pds - generate a random planar difference set
 
 =head1 SYNOPSIS
 
-  pds_planes p n
-  pds_planes order
+  random_pds order
 
 =head1 DESCRIPTION
 
-This example program writes planar difference sets of a given order
-to standard output.  The order can be specified as a prime number and
-an exponent, or as a prime power.  The output will be lines with one
-representative difference set per line, for all planes of the given order.
+This example program picks a random planar difference set of a given
+order.  The output will be a line with integer numbers, separated by
+blanks, followed by the string " (mod E<lt>modulusE<gt>)".
 
 =head1 AUTHOR
 
