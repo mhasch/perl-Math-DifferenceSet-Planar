@@ -10,18 +10,34 @@
 use strict;
 use warnings;
 use File::Spec;
+use FindBin;
 
-use Test::More tests => 28;
+use Test::More tests => 37;
 BEGIN { use_ok('Math::DifferenceSet::Planar::Data') };
 
 #########################
 
+local $Math::DifferenceSet::Planar::Data::DATABASE_DIR =
+    File::Spec->catfile($FindBin::Bin, 'db');
+
 my $data = Math::DifferenceSet::Planar::Data->new;
 isa_ok($data, 'Math::DifferenceSet::Planar::Data');
+is($data->max_order, 113);
+is($data->count, 40);
 
 my @dbs = Math::DifferenceSet::Planar::Data->list_databases;
-ok(@dbs >= 1);
-ok(1 == grep { $_ eq 'pds.db' } @dbs);
+is("@dbs", 'pds_40.db pds.db extra.db');
+
+my $extra_path = File::Spec->catfile($FindBin::Bin, 'db', 'extra.db');
+$data = Math::DifferenceSet::Planar::Data->new($extra_path);
+isa_ok($data, 'Math::DifferenceSet::Planar::Data');
+is($data->max_order, 11);
+is($data->count, 1);
+
+$data = Math::DifferenceSet::Planar::Data->new('pds.db');
+isa_ok($data, 'Math::DifferenceSet::Planar::Data');
+is($data->max_order, 9);
+is($data->count, 7);
 
 my $rec = $data->get(9);
 isa_ok($rec, 'Math::DifferenceSet::Planar::Schema::Result::DifferenceSet');
@@ -42,22 +58,68 @@ is($rec->n_planes, 12);
 ok(!defined $rec->deltas);
 
 my $it = $data->iterate(6, 8);
-$rec = $it->();
-is($rec->order, 7);
-like($rec->deltas, qr/^[0-9]+(?: [0-9]+){5}\z/);
-$rec = $it->();
-is($rec->order, 8);
-like($rec->deltas, qr/^[0-9]+(?: [0-9]+){6}\z/);
-$rec = $it->();
-ok(!$rec);
+my @ords = ();
+my $has_deltas = 1;
+while (my $r = $it->()) {
+    push @ords, $r->order;
+    $has_deltas &&= $r->deltas =~ /^[0-9]+(?: [0-9]+)+\z/;
+    last if @ords >= 10;
+}
+is("@ords", '7 8');
+ok($has_deltas);
+
+$it = $data->iterate_properties;
+@ords = ();
+$has_deltas = 0;
+while (my $r = $it->()) {
+    push @ords, $r->order;
+    $has_deltas ||= $r->deltas;
+    last if @ords >= 10;
+}
+is("@ords", '2 3 4 5 7 8 9');
+ok(!$has_deltas);
+
+$it = $data->iterate_properties(4, 7);
+@ords = ();
+$has_deltas = 0;
+while (my $r = $it->()) {
+    push @ords, $r->order;
+    $has_deltas ||= $r->deltas;
+    last if @ords >= 10;
+}
+is("@ords", '4 5 7');
+ok(!$has_deltas);
+
+$it = $data->iterate_properties(6);
+@ords = ();
+$has_deltas = 0;
+while (my $r = $it->()) {
+    push @ords, $r->order;
+    $has_deltas ||= $r->deltas;
+    last if @ords >= 10;
+}
+is("@ords", '7 8 9');
+ok(!$has_deltas);
+
+$it = $data->iterate_properties(undef, 6);
+@ords = ();
+$has_deltas = 0;
+while (my $r = $it->()) {
+    push @ords, $r->order;
+    $has_deltas ||= $r->deltas;
+    last if @ords >= 10;
+}
+is("@ords", '2 3 4 5');
+ok(!$has_deltas);
 
 $it = $data->iterate_properties(8, 6);
-$rec = $it->();
-is($rec->order, 8);
-ok(!defined $rec->deltas);
-$rec = $it->();
-is($rec->order, 7);
-ok(!defined $rec->deltas);
-$rec = $it->();
-ok(!$rec);
+@ords = ();
+$has_deltas = 0;
+while (my $r = $it->()) {
+    push @ords, $r->order;
+    $has_deltas ||= $r->deltas;
+    last if @ords >= 10;
+}
+is("@ords", '8 7');
+ok(!$has_deltas);
 
