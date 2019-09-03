@@ -1,10 +1,51 @@
 #!/bin/sh
 
 rm -f t/db/extra.db t/db/pds.db t/db/pds_40.db
-head -n 7 data/pdm_00002-04096.txt |
-    maint/fill_pds -c -f t/db/pds.db
+
+
+NAME=pds.db
+DB=t/db/$NAME
+POD=t/db/pds.pod
+
+rm -f "$DB" "$POD"
+head -n 7 data/pdm_00002-04096.txt | maint/fill_pds -c -f "$DB"
+maint/make_pod --version=0.9 --version_date='August 29, 2019' --name=$NAME \
+    --summary='small database with planar difference set samples' \
+    <<'EOT' >"$POD"
+This file is a small sample database only used for testing.
+
+It contains 7 cyclic planar difference sets with orders ranging from
+2 to 9.  The sets are chosen minimal by lexicographic ordering.
+EOT
+
+NAME=extra.db
+DB=t/db/$NAME
+POD=t/db/extra.pod
+
+rm -f "$DB" "$POD"
 head -n 8 data/pdm_00002-04096.txt |tail -n 1 |
-    maint/fill_pds -c -f t/db/extra.db
-head -n 40 data/pdx_00002-04096.txt |
-    maint/fill_pds -c -f t/db/pds_40.db
+    maint/fill_pds -c -f "$DB"
+maint/make_pod --version=0.9 --version_date='August 29, 2019' --name=$NAME \
+    --summary='additional database with planar difference set sample' \
+    <<'EOT' >"$POD"
+This file is an additional sample database only used for testing.
+
+It contains 1 cyclic planar difference set with order 11.
+The set is chosen minimal by lexicographic ordering.
+EOT
+
+NAME=pds_40.db
+DB=t/db/$NAME
+POD=t/db/pds_40.pod
+
+rm -f "$DB" "$POD"
+head -n 40 data/pdx_00002-04096.txt | maint/fill_pds -c -f "$DB"
+maint/make_pod --version=0.9 --version_date='August 30, 2019' --name=$NAME \
+    --summary='larger database with planar difference set samples' \
+    <<'EOT' >"$POD"
+This file is a slightly larger sample database only used for testing.
+
+It contains 40 cyclic planar difference sets with orders ranging from
+2 to 113.  The sets are generated from Conway polynomials.
+EOT
 

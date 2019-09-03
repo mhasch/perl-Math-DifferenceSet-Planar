@@ -1,0 +1,31 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use FindBin;
+
+my $TEMPLATE = "$FindBin::Bin/template.pod";
+my %repl = ();
+
+while (@ARGV && $ARGV[0] =~ /^--(\w+)=(.*)/s) {
+    shift @ARGV;
+    $repl{uc $1} = $2;
+}
+
+die "usage: make_pod [--key=value]...\n" if @ARGV;
+
+if (!exists $repl{'DESCRIPTION'}) {
+    local $/;
+    my $desc= <STDIN>;
+    $desc =~ s/\n+\z//;
+    $repl{'DESCRIPTION'} = $desc;
+}
+
+open my $template, '<', $TEMPLATE or die "$TEMPLATE: cannot open: $!\n";
+while (<$template>) {
+    s/%(\w+)%/exists($repl{$1})? $repl{$1} : "%$1%"/ge;
+    print;
+}
+close $template;
+
+__END__
