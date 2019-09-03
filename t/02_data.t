@@ -12,7 +12,7 @@ use warnings;
 use File::Spec;
 use FindBin;
 
-use Test::More tests => 37;
+use Test::More tests => 38;
 BEGIN { use_ok('Math::DifferenceSet::Planar::Data') };
 
 #########################
@@ -33,6 +33,7 @@ $data = Math::DifferenceSet::Planar::Data->new($extra_path);
 isa_ok($data, 'Math::DifferenceSet::Planar::Data');
 is($data->max_order, 11);
 is($data->count, 1);
+is($data->path, $extra_path);
 
 $data = Math::DifferenceSet::Planar::Data->new('pds.db');
 isa_ok($data, 'Math::DifferenceSet::Planar::Data');

@@ -12,7 +12,8 @@ use Math::DifferenceSet::Planar::Schema;
 
 # .......... index ..........   # .......... value ..........
 use constant _F_DATA     => 0;  # result set object
-use constant _NFIELDS    => 1;
+use constant _F_PATH     => 1;  # result set object
+use constant _NFIELDS    => 2;
 
 our $VERSION  = '0.006';
 our @CARP_NOT = qw(Math::DifferenceSet::Planar);
@@ -22,6 +23,7 @@ our $DATABASE_DIR = dist_dir('Math-DifferenceSet-Planar');
 # ----- private accessor methods -----
 
 sub _data { $_[0]->[_F_DATA] }
+sub _path { $_[0]->[_F_PATH] }
 
 # ----- class methods -----
 
@@ -58,7 +60,7 @@ sub new {
     my $data = $schema->resultset('DifferenceSet');
     my $count = eval { $data->search->count };
     croak "bad database: query failed: $@" if !defined $count;
-    return bless [$data], $class;
+    return bless [$data, $path], $class;
 }
 
 # ----- object methods -----
@@ -108,6 +110,7 @@ sub iterate_properties {
 
 sub max_order { $_[0]->_data->get_column('order_')->max }
 sub count     { $_[0]->_data->search->count }
+sub path      { $_[0]->_path }
 
 1;
 
@@ -148,6 +151,7 @@ Math::DifferenceSet::Planar::Data.
 
   $max   = $data->max_order;
   $count = $data->count;
+  $path  = $data->path;
 
 =head1 DESCRIPTION
 
@@ -241,6 +245,11 @@ difference set in the database.
 If C<$data> is a Math::DifferenceSet::Planar::Data object,
 C<$data-E<gt>count> returns the number of sample planar difference sets
 in the database.
+
+=item I<path>
+
+If C<$data> is a Math::DifferenceSet::Planar::Data object,
+C<$data-E<gt>path> returns the full path name of the database.
 
 =back
 
