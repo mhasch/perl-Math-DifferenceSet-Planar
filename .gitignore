@@ -4,7 +4,8 @@ MYMETA.yml
 Makefile
 Makefile.old
 Math-DifferenceSet-Planar-*
-blib
-cover_db
-pm_to_blib
-*.db
+/blib
+/cover_db
+/pm_to_blib
+/share
+/t/db
