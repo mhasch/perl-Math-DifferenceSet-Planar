@@ -6,7 +6,7 @@ use Math::Prime::Util qw(is_prime_power euler_phi);
 use DBI;
 
 my $DB_TYPE = 'dbi:SQLite';
-my $DB_CONF = { RaiseError => 1, AutoCommit => 0 };
+my $DB_CONF = { RaiseError => 1, AutoCommit => 1 };
 
 my ($DB_NAME, $CREATE_TABLES) = process_options();
 
@@ -33,6 +33,7 @@ if ($CREATE_TABLES) {
     $sth->execute;
 }
 
+$dbh->begin_work;
 while (<<>>) {
     chomp;
     if (/^([0-9][0-9\s]*[0-9])\s*\(mod ([0-9]+)\)\s*\z/) {
@@ -81,9 +82,7 @@ while (<<>>) {
 }
 $dbh->commit;
 
-$sth = $dbh->prepare( qq[VACUUM] );
-$sth->execute;
-$sth->commit;
+$dbh->do( q[VACUUM] );
 
 $sth = $dbh->prepare( qq[SELECT COUNT(*) FROM $TABLE] );
 $sth->execute;
