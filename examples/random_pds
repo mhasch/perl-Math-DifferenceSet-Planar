@@ -30,7 +30,7 @@ while (gcd($t, $m) != 1) {
 }
 my $s1 = $s0->multiply($t)->translate(int rand $m);
 my @e  = $s1->elements_sorted;
-print "@e (mod $m)\n";
+print "@e\n";
 
 __END__
 =head1 NAME
@@ -45,7 +45,7 @@ random_pds - generate a random planar difference set
 
 This example program picks a random planar difference set of a given
 order.  The output will be a line with integer numbers, separated by
-blanks, followed by the string " (mod E<lt>modulusE<gt>)".
+blanks, ordered numerically.
 
 =head1 AUTHOR
 
