@@ -19,7 +19,7 @@ use constant _NFIELDS     => 7;
 
 our $VERSION = '0.006';
 
-our $_MAX_ENUM_ORDER = 1024;
+our $_MAX_ENUM_COUNT = 32768;
 our $_LOG_MAX_ORDER = 21 * log(2);
 
 my $DATA = undef;
@@ -47,7 +47,7 @@ sub _rotators {
     my (           $base,   $exponent,   $modulus,   $rotators) =
         @{$this}[_F_BASE, _F_EXPONENT, _F_MODULUS, _F_ROTATORS];
     return $rotators if @{$rotators};
-    return undef if $this->[_F_ORDER] > $_MAX_ENUM_ORDER;
+    return undef if $this->[_F_N_PLANES] > $_MAX_ENUM_COUNT;
     my @mult = _multipliers($base, $exponent, $modulus);
     my @sieve = (1) x $modulus;
     @sieve[@mult] = ();
