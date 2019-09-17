@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Math::Prime::Util qw(is_prime_power euler_phi);
-use DBI;
+use DBI qw(SQL_INTEGER SQL_BLOB);
 
 my $DB_TYPE = 'dbi:SQLite';
 my $DB_CONF = { RaiseError => 1, AutoCommit => 1 };
@@ -27,7 +27,7 @@ if ($CREATE_TABLES) {
             q[  exponent integer NOT NULL,] .
             q[  modulus  integer NOT NULL,] .
             q[  n_planes integer NOT NULL,] .
-            q[  deltas   text    NOT NULL] .
+            q[  deltas   blob    NOT NULL] .
             q[)]
         );
     $sth->execute;
@@ -61,19 +61,25 @@ while (<<>>) {
             warn "$.: second element is not first plus one (ignored)\n";
             next;
         }
-        my @d = map { $r[$_] - $r[$_-1] } 2 .. $#r;
-        if (grep { $_ <= 0 } @d) {
-            warn "$.: elements are not sorted (warning)\n";
+        my @deltas = map { $r[$_] - $r[$_-1] } 2 .. $#r;
+        if (grep { $_ <= 0 } @deltas) {
+            warn "$.: elements are not sorted (ignored)\n";
+            next;
         }
+        my $packed = pack 'w*', @deltas;
         $sth = $dbh->prepare( qq[DELETE FROM $TABLE WHERE $KEY = ?] );
         $sth->execute($order);
         $sth =
             $dbh->prepare(
                 qq[INSERT into $TABLE ($COLUMNS) VALUES ($PLACEHOLDERS)]
             );
-        $sth->execute(
-            $order, $base, $exponent, $modulus, $n_planes, "@d"
-        );
+        $sth->bind_param(1, $order,    SQL_INTEGER);
+        $sth->bind_param(2, $base,     SQL_INTEGER);
+        $sth->bind_param(3, $exponent, SQL_INTEGER);
+        $sth->bind_param(4, $modulus,  SQL_INTEGER);
+        $sth->bind_param(5, $n_planes, SQL_INTEGER);
+        $sth->bind_param(6, $packed,   SQL_BLOB   );
+        $sth->execute();
     }
     else {
         substr($_, 40) = '...' if 44 < length $_;

@@ -1,10 +1,12 @@
 #!/bin/sh
 
 NAME=pds_6638.db
-DB=share/$NAME
-POD=share/pds_6638.pod
+DIR=share
+DB=$DIR/$NAME
+POD=$DIR/pds_6638.pod
 
 rm -f "$DB" "$POD"
+mkdir -p "$DIR"
 maint/fill_pds -c -f "$DB" data/pdx_*.txt
 maint/make_pod --version=1.0 --version_date='August 26, 2019' --name=$NAME \
     --summary='large database with planar difference set samples' \

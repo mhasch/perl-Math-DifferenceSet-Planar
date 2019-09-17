@@ -1,10 +1,12 @@
 #!/bin/sh
 
 NAME=pds.db
-DB=share/$NAME
-POD=share/pds.pod
+DIR=share
+DB=$DIR/$NAME
+POD=$DIR/pds.pod
 
 rm -f "$DB" "$POD"
+mkdir -p "$DIR"
 maint/fill_pds -c -f "$DB" data/pdm_00002-04096.txt
 maint/make_pod --version=1.0 --version_date='July 30, 2019' --name=$NAME \
     --summary='small database with planar difference set samples' \
