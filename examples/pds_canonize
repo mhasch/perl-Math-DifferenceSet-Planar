@@ -14,8 +14,6 @@ while (<<>>) {
 
     die "integer numbers separated by whitespace expected\n"
         if grep { !/^(?:0|[1-9][0-9]*)\z/ } @e;
-    die "not a planar difference set\n"
-        if !Math::DifferenceSet::Planar->verify_elements(@e);
 
     my $s = Math::DifferenceSet::Planar->from_elements(@e);
 

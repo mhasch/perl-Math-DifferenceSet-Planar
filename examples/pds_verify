@@ -14,26 +14,31 @@ while (<<>>) {
 
     die "integer numbers separated by whitespace expected\n"
         if grep { !/^(?:0|[1-9][0-9]*)\z/ } @e;
+    die "not a planar difference set\n"
+        if !Math::DifferenceSet::Planar->verify_elements(@e);
 
     my $s = Math::DifferenceSet::Planar->from_elements(@e);
-    my @e2 = $s->elements_sorted;
-    print "@e2\n";
+
+    @e = $s->elements;
+
+    print "@e\n";
 }
 
 __END__
 =head1 NAME
 
-pds_sort_elements - numerically sort planar difference set elements
+pds_verify - verify lists of integers as planar difference sets
 
 =head1 SYNOPSIS
 
-  pds_sort_elements [file]...
+  pds_verify [file]...
 
 =head1 DESCRIPTION
 
 This example program reads planar difference sets, one per line, as
-integer numbers separated by whitespace, sorts the elements numerically,
-and writes the result to standard output.
+integer numbers separated by whitespace, verifies them and writes them
+back to standard output.  On other input, the program stops with an
+error message.
 
 =head1 AUTHOR
 

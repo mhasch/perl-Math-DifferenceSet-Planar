@@ -44,7 +44,9 @@ as well.  The functionality of the scripts in the examples directory
 may be included in such tools.  More ways to present difference sets,
 especially graphically, could be a nice addition.
 
-A new database format could allow to store sample sets more efficiently.
+We also want to add more functionality for geometric aspects, like
+line intersection, collinearity, and coordinate mapping.
+
 An XS implementation could increase performance with large sets.
 Computation of more data will be included as soon as a prerequisite Perl
 library, Math-GaloisField, is publicly available.

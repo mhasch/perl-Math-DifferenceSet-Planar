@@ -8,7 +8,7 @@ POD=$DIR/pds_6638.pod
 rm -f "$DB" "$POD"
 mkdir -p "$DIR"
 maint/fill_pds -c -f "$DB" data/pdx_*.txt
-maint/make_pod --version=1.0 --version_date='August 26, 2019' --name=$NAME \
+maint/make_pod --version=1.1 --version_date='September 19, 2019' --name=$NAME \
     --summary='large database with planar difference set samples' \
     <<'EOT' >"$POD"
 This file is a larger alternative to the default database distributed

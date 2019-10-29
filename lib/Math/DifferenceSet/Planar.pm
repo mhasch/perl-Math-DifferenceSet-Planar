@@ -795,6 +795,10 @@ any of its implicit or explicit assumptions.  If you do find something
 wrong or inaccurate, however, the author will be glad to be notified
 about it and address the issue.
 
+The verify_elements() method currently builds a complete operator table
+in memory.  This does not scale very well in terms of either space or
+time for larger sets.
+
 Bug reports and suggestions are welcome.
 Please submit them through the CPAN RT,
 L<https://rt.cpan.org/NoAuth/ReportBug.html?Queue=Math-DifferenceSet-Planar>.

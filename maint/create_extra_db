@@ -1,0 +1,21 @@
+#!/bin/sh
+
+BASENAME=extra_2096993
+NAME=$BASENAME.db
+DIR=share
+DB=$DIR/$NAME
+POD=$DIR/$BASENAME.pod
+
+rm -f "$DB" "$POD"
+mkdir -p "$DIR"
+maint/fill_pds -c -f "$DB" data/$BASENAME.txt
+maint/make_pod --version=1.1 --version_date='September 23, 2019' --name=$NAME \
+    --summary='database with special planar difference set samples' \
+    <<'EOT' >"$POD"
+This file is a supplement to the default database distributed
+with the Perl 5 module Math::DifferenceSet::Planar.
+
+It contains one huge cyclic planar difference set of order 2096993.
+The set is generated from a Conway polynomial.
+EOT
+

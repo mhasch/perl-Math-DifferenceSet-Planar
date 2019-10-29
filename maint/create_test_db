@@ -8,7 +8,7 @@ POD=$DIR/pds.pod
 rm -f "$DB" "$POD"
 mkdir -p "$DIR"
 head -n 7 data/pdm_00002-04096.txt | maint/fill_pds -c -f "$DB"
-maint/make_pod --version=0.9 --version_date='August 29, 2019' --name=$NAME \
+maint/make_pod --version=1.1 --version_date='September 17, 2019' --name=$NAME \
     --summary='small database with planar difference set samples' \
     <<'EOT' >"$POD"
 This file is a small sample database only used for testing.
@@ -26,7 +26,7 @@ rm -f "$DB" "$POD"
 mkdir -p "$DIR"
 head -n 8 data/pdm_00002-04096.txt |tail -n 1 |
     maint/fill_pds -c -f "$DB"
-maint/make_pod --version=0.9 --version_date='August 29, 2019' --name=$NAME \
+maint/make_pod --version=1.1 --version_date='September 17, 2019' --name=$NAME \
     --summary='additional database with planar difference set sample' \
     <<'EOT' >"$POD"
 This file is an additional sample database only used for testing.
@@ -43,7 +43,7 @@ POD=$DIR/pds_48.pod
 rm -f "$DB" "$POD"
 mkdir -p "$DIR"
 head -n 48 data/pdx_00002-04096.txt | maint/fill_pds -c -f "$DB"
-maint/make_pod --version=0.9 --version_date='September 17, 2019' --name=$NAME \
+maint/make_pod --version=1.1 --version_date='September 17, 2019' --name=$NAME \
     --summary='larger database with planar difference set samples' \
     <<'EOT' >"$POD"
 This file is a slightly larger sample database only used for testing.
