@@ -7,22 +7,38 @@ use Math::DifferenceSet::Planar;
 
 $| = 1;
 
+my $NUM = qr/(?:0|[1-9][0-9]*)/;
+
+while (@ARGV && $ARGV[0] =~ /^-(.+)/s) {
+    my $opt = $1;
+    shift @ARGV;
+    last if $opt eq q[-];
+    die "usage: pds_verify [file]...\n";
+}
+
+my $syntax  = 0;
+my $range   = 0;
+my $not     = 0;
+my $proven  = 0;
 while (<<>>) {
     s/^\s+//;
     my @e = split /\s+/;
     next if !@e;
 
-    die "integer numbers separated by whitespace expected\n"
-        if grep { !/^(?:0|[1-9][0-9]*)\z/ } @e;
-    die "not a planar difference set\n"
-        if !Math::DifferenceSet::Planar->verify_elements(@e);
-
-    my $s = Math::DifferenceSet::Planar->from_elements(@e);
-
-    @e = $s->elements;
-
+    ++$syntax, next if grep { !/^$NUM\z/ } @e;
+    my $check = Math::DifferenceSet::Planar->verify_elements(@e);
+    ++$range, next if !defined $check;
+    ++$not,   next if !$check;
+    ++$proven;
     print "@e\n";
 }
+
+warn "$syntax set(s) syntactically wrong\n"  if $syntax;
+warn "$range set(s) not normalized\n"        if $range;
+warn "$not set(s) proven to be wrong\n"      if $not;
+warn "$proven set(s) proven to be correct\n" if $proven;
+
+exit $syntax + $range + $not? 1: 0;
 
 __END__
 =head1 NAME
@@ -35,10 +51,11 @@ pds_verify - verify lists of integers as planar difference sets
 
 =head1 DESCRIPTION
 
-This example program reads planar difference sets, one per line, as
-integer numbers separated by whitespace, verifies them and writes them
-back to standard output.  On other input, the program stops with an
-error message.
+This example program reads planar difference sets, one per line,
+as integer numbers separated by whitespace, verifies them, and writes
+those of them them back to standard output that are correct.  The program
+concludes with a summary of the check results on standard error.  The exit
+code is 0 (success) if no lines had to be filtered out, otherwise 1.
 
 =head1 AUTHOR
 
@@ -46,11 +63,10 @@ Martin Becker, E<lt>becker-cpan-mp I<at> cozap.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2019 by Martin Becker, Blaubeuren.  All rights reserved.
+Copyright (c) 2019-2020 by Martin Becker, Blaubeuren.
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.10.0 or,
-at your option, any later version of Perl 5 you may have available.
+This library is free software; you can distribute it and/or modify it
+under the terms of the Artistic License 2.0 (see the LICENSE file).
 
 =head1 DISCLAIMER OF WARRANTY
 

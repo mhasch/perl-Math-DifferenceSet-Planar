@@ -1,5 +1,11 @@
 #!/usr/bin/env perl
 
+# Copyright (c) 2019-2021 Martin Becker, Blaubeuren.
+# This package is free software; you can distribute it and/or modify it
+# under the terms of the Artistic License 2.0 (see LICENSE file).
+
+# create or update difference set database from text representation of sets
+
 use strict;
 use warnings;
 use Math::Prime::Util qw(is_prime_power euler_phi);

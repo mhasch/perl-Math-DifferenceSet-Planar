@@ -1,20 +1,22 @@
 #!/bin/sh
 
-NAME=pds_6638.db
+MAX=81937
+COUNT=8115
+NAME=pds_$COUNT.db
 DIR=share
 DB=$DIR/$NAME
-POD=$DIR/pds_6638.pod
+POD=$DIR/pds_$COUNT.pod
 
 rm -f "$DB" "$POD"
 mkdir -p "$DIR"
 maint/fill_pds -c -f "$DB" data/pdx_*.txt
-maint/make_pod --version=1.1 --version_date='September 19, 2019' --name=$NAME \
+maint/make_pod --version=1.2 --version_date='September 20, 2020' --name=$NAME \
     --summary='large database with planar difference set samples' \
-    <<'EOT' >"$POD"
+    <<EOT >"$POD"
 This file is a larger alternative to the default database distributed
 with the Perl 5 module Math::DifferenceSet::Planar.
 
-It contains 6638 cyclic planar difference sets with orders ranging from
-2 to 65543.  The sets are generated from Conway polynomials.
+It contains $COUNT cyclic planar difference sets with orders ranging from
+2 to $MAX.  The sets are generated from Conway polynomials.
 EOT
 

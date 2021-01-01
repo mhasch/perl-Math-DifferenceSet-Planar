@@ -1,5 +1,7 @@
 #!/bin/sh
 
+MAX=4096
+COUNT=604
 NAME=pds.db
 DIR=share
 DB=$DIR/$NAME
@@ -7,14 +9,14 @@ POD=$DIR/pds.pod
 
 rm -f "$DB" "$POD"
 mkdir -p "$DIR"
-maint/fill_pds -c -f "$DB" data/pdm_00002-04096.txt
+maint/fill_pds -c -f "$DB" data/pdm_*.txt
 maint/make_pod --version=1.1 --version_date='September 17, 2019' --name=$NAME \
     --summary='small database with planar difference set samples' \
-    <<'EOT' >"$POD"
+    <<EOT >"$POD"
 This file is the default database distributed with the Perl 5 module
 Math::DifferenceSet::Planar.
 
-It contains 604 cyclic planar difference sets with orders ranging from
-2 to 4096.  The sets are chosen minimal by lexicographic ordering.
+It contains $COUNT cyclic planar difference sets with orders ranging from
+2 to $MAX.  The sets are chosen minimal by lexicographic ordering.
 EOT
 
