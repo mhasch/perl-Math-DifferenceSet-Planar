@@ -5,7 +5,7 @@ Revision history for Perl extension Math::DifferenceSet::Planar.
           - check_elements
           - find_delta
           - start_element
-          - peak_element
+          - peak_elements
           - eta
           - contains
         - more example scripts

@@ -11,7 +11,7 @@ use strict;
 use warnings;
 use File::Spec;
 
-use Test::More tests => 132;
+use Test::More tests => 135;
 BEGIN { use_ok('Math::DifferenceSet::Planar') };
 
 #########################
@@ -111,12 +111,14 @@ my @noe = eval { $nods->find_delta(19) };
 ok(0 == @noe);
 like($@, qr/^bogus set: delta not found: 19 \(mod 57\)/);
 
-diag("INC: @INC");
-diag("LOC: $INC{'Math/DifferenceSet/Planar.pm'}");
-my $pe = $ds->peak_element;
-ok($pe == $e[0]);
-$pe = $ds->peak_element;
-ok($pe == $e[0]);
+my @pe = $ds->peak_elements;
+my $dmax = ($ds->modulus - 1) / 2;
+ok(@pe == 2);
+ok(($pe[1] - $pe[0]) % $ds->modulus == $dmax);
+ok($ds->contains($pe[0]));
+ok($ds->contains($pe[1]));
+my @pe2 = $ds->peak_elements;
+is("@pe2", "@pe");
 my @set = grep { $ds->contains($_) } -1 .. 91;
 is("@set", "@el");
 my @set1 = grep { $ds1->contains($_) } -1 .. 91;

@@ -17,7 +17,7 @@ use constant _F_N_PLANES  =>  4;    # number of distinct planes this size
 use constant _F_ELEMENTS  =>  5;    # elements arrayref
 use constant _F_ROTATORS  =>  6;    # rotators arrayref, initially empty
 use constant _F_INDEX_MIN =>  7;    # index of smallest element
-use constant _F_PEAK      =>  8;    # "peak" element, initially undef
+use constant _F_PEAK      =>  8;    # peak elements arrayref, initially undef
 use constant _F_ETA       =>  9;    # "eta" value, initially undef
 use constant _NFIELDS     => 10;
 
@@ -488,15 +488,15 @@ sub find_delta {
     return $up? ($le, $ue): ($ue, $le);
 }
 
-# $e = $ds->peak_element
-sub peak_element {
+# ($e1, $e2) = $ds->peak_elements
+sub peak_elements {
     my ($this) = @_;
     my $peak = $this->[_F_PEAK];
     if (!defined $peak) {
-        ($peak) = $this->find_delta($this->modulus >> 1);
+        $peak = [$this->find_delta($this->modulus >> 1)];
         $this->[_F_PEAK] = $peak;
     }
-    return $peak;
+    return @{$peak};
 }
 
 # $e = $ds->eta
@@ -568,7 +568,7 @@ This documentation refers to version 0.009 of Math::DifferenceSet::Planar.
   $n  = $ds->order_exponent;
 
   ($e1, $e2) = $ds->find_delta($delta);
-  $e1        = $ds->peak_element;
+  ($e1, $e2) = $ds->peak_elements;
   ($e1)      = $ds->find_delta(($ds->modulus - 1) / 2);
   $eta       = $ds->eta;
   $bool      = $ds->contains($e1);
@@ -674,7 +674,7 @@ Each planar difference set has, for each nonzero element I<delta>
 of its ring E<8484>_n, a unique pair of elements S<(I<e1>, I<e2>)>
 satisfying S<I<e2> - I<e1> = I<delta>>.  For S<I<delta> = 1>, we call
 I<e1> the start element.  For S<I<delta> = (I<n> - 1) / 2>, we call I<e1>
-the peak element.
+and I<e2> the peak elements.
 
 As I<order_base> is (conjecturally) always a multiplier, multiplying a
 planar difference set by I<order_base> will yield a translation of the
@@ -967,8 +967,8 @@ it is exhausted.
 If C<$ds> is a planar difference set object and C<$delta> is an integer
 value, C<$ds-E<gt>find_delta($delta)> returns a pair of elements
 C<($e1, $e2)> of the set with the property that C<$e2 - $e1 == $delta>
-(modulo the modulus of the set).  If C<$delta> is not zero (modulo the
-modulus) this pair will be unique.
+(modulo the modulus of the set).  If C<$delta> is not zero or a multiple
+of the modulus this pair will be unique.
 
 The unique existence of such a pair is in fact the defining quality of a
 planar difference set.  The algorithm has an I<O(n)> time complexity if
@@ -976,16 +976,16 @@ I<n> is the cardinality of the set.  If it fails, the set stored in the
 object is not actually a difference set.  An exception will be raised
 in that case.
 
-=item I<peak_element>
+=item I<peak_elements>
 
-If C<$ds> is a planar difference set object, there is a unique pair of
-elements C<($e1, $e2)> of the set with maximal distance D<$dmax>:
-C<$e2 - $e1 == $dmax> and C<$e1 - $e2> == $dmax + 1>
-(modulo the modulus of the set), and C<$dmax + $dmax + 1> is equal to
-the modulus.  C<$ds-E<gt>peak_element> will return E<$e1>,
-and C<$e2> can be computed as C<$e1 + ($ds-E<gt>modulus - 1) / 2>.
+If C<$ds> is a planar difference set object with modulus C<$modulus>,
+there is a unique pair of elements C<($e1, $e2)> of the set with
+maximal distance: C<$dmax = ($modulus - 1) / 2>,
+and C<($e2 - $e1) % $modulus == $dmax>,
+and C<($e1 - $e2) % $modulus == $dmax + 1>.
+C<$ds-E<gt>peak_elements> returns the pair C<($e1, $e2)>.
 
-Equivalently, C<$e1> and C<$e2> could be computed as:
+Equivalently, C<$e1> and C<$e2> can be computed as:
 C<($e1, $e2) = $ds-E<gt>find_delta( ($ds-E<gt>modulus - 1) / 2 )>
 
 =item I<eta>
@@ -1074,9 +1074,9 @@ The object method I<multiply> was called with an argument that was not an
 integer coprime to the modulus.  The argument is repeated in the message.
 Factors not coprime to the modulus would not yield a proper difference set.
 
-=item bogus set: delta not found: %d (mod %d)";
+=item bogus set: delta not found: %d (mod %d)
 
-One of the methods I<find_delta> or I<peak_element> was called on an
+One of the methods I<find_delta> or I<peak_elements> was called on an
 object of a set lacking the required I<delta> value.  This means that
 the set was not actually a difference set, which in turn means that
 previously a constructor must have been called with unverified set
@@ -1114,8 +1114,6 @@ L<File::Spec>,
 
 L<Math::Prime::Util> version 0.59 or later.
 
-=item *
-
 =back
 
 To build and install, it also needs:
@@ -1138,7 +1136,7 @@ L<File::Spec>,
 
 L<Test::More>.
 
-=back.
+=back
 
 The minimum required perl version is 5.10.  Some example scripts use
 E<lt>E<lt>E<gt>E<gt> and thus require perl version 5.22 or later to run.
