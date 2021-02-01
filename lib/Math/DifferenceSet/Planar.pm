@@ -21,7 +21,7 @@ use constant _F_PEAK      =>  8;    # peak elements arrayref, initially undef
 use constant _F_ETA       =>  9;    # "eta" value, initially undef
 use constant _NFIELDS     => 10;
 
-our $VERSION = '0.009';
+our $VERSION = '0.011';
 
 our $_LOG_MAX_ORDER  = 22.1807;         # limit for integer exponentiation
 our $_MAX_ENUM_COUNT = 32768;           # limit for stored rotator set size
@@ -184,7 +184,8 @@ sub set_database {
 sub available {
     my ($class, $base, $exponent) = @_;
     my $order = defined($exponent)? _pow($base, $exponent): $base;
-    my $pds   = $order && $class->_data->get($order, 'base');
+    return undef if !$order || $order > $class->_data->max_order;
+    my $pds   = $class->_data->get($order, 'base');
     return !!$pds && (!defined($exponent) || $base == $pds->base);
 }
 
@@ -543,7 +544,7 @@ Math::DifferenceSet::Planar - object class for planar difference sets
 
 =head1 VERSION
 
-This documentation refers to version 0.009 of Math::DifferenceSet::Planar.
+This documentation refers to version 0.011 of Math::DifferenceSet::Planar.
 
 =head1 SYNOPSIS
 
@@ -991,10 +992,12 @@ C<($e1, $e2) = $ds-E<gt>find_delta( ($ds-E<gt>modulus - 1) / 2 )>
 =item I<eta>
 
 The prime power conjecture of planar difference sets states that any
-such set has prime power order.  Another conjecture asserts that the
-prime number is a multiplier of the set.  Thus multiplying the set by
-the prime is equivalent to a translation.  The translation amount is
-called I<eta> here and the method I<eta> returns its value.
+such set has prime power order.  This is would also be implied by the
+stronger conjecture that all finite projective planes have prime power
+order.  Another conjecture asserts that the prime number is a multiplier
+of the set.  Thus multiplying the set by the prime is equivalent to
+a translation.  The translation amount is called I<eta> here and the
+method I<eta> returns its value.
 
 Technically, C<$ds-E<gt>eta> is equivalent to
 C<$ds-E<gt>multiply($ds-E<gt>order_base)-E<gt>element(0) >

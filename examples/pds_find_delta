@@ -43,8 +43,7 @@ integer numbers separated by whitespace, finds in each set the pair of
 elements with the difference specified on the command line, and writes
 those elements to standard output.
 
-Note that the delta value will be normalized with respect to the modulus
-of each set.
+Note that the difference is taken modulo the modulus of each set.
 
 The program will fail with an error message if an input line is not a set
 containing such a pair, which also indicates it is not a difference set.
@@ -56,7 +55,7 @@ Martin Becker, E<lt>becker-cpan-mp I<at> cozap.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2020 by Martin Becker, Blaubeuren.
+Copyright (c) 2020-2021 by Martin Becker, Blaubeuren.
 
 This library is free software; you can distribute it and/or modify it
 under the terms of the Artistic License 2.0 (see the LICENSE file).

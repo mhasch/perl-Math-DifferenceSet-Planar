@@ -8,7 +8,7 @@ use constant PDS => Math::DifferenceSet::Planar::;
 
 $| = 1;
 
-die "usage: show_databases [directory]" if @ARGV > 1 || grep {!-d} @ARGV;
+die "usage: pds_databases [directory]" if @ARGV > 1 || grep {!-d} @ARGV;
 
 if (@ARGV) {
     $Math::DifferenceSet::Planar::Data::DATABASE_DIR = $ARGV[0];
@@ -30,11 +30,11 @@ foreach my $db (PDS->list_databases) {
 __END__
 =head1 NAME
 
-show_databases - show available planar difference set databases
+pds_databases - show available planar difference set databases
 
 =head1 SYNOPSIS
 
-  show_databases [directory]
+  pds_databases [directory]
 
 =head1 DESCRIPTION
 

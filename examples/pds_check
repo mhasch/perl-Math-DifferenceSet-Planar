@@ -54,7 +54,7 @@ while (<<>>) {
 warn "$syntax set(s) syntactically wrong\n"           if $syntax;
 warn "$range set(s) not normalized\n"                 if $range;
 warn "$not set(s) proven to be wrong\n"               if $not;
-warn "$mult set(s) not passing multiplicator check\n" if $mult;
+warn "$mult set(s) not passing multiplier check\n"    if $mult;
 warn "$perhaps set(s) probably correct\n"             if $perhaps;
 warn "$proven set(s) proven to be correct\n"          if $proven;
 
@@ -74,13 +74,13 @@ pds_check - perform planar difference set checks on lists of integers
 This example program reads lists of numbers, one list per line, as
 integer numbers separated by whitespace, checks them for being planar
 difference sets, and writes those of them them back to standard output
-that probably are.  An optional depth parameter governs the effort to be
-taken for each check.  An optional factor greater than one forces a check
-whether this factor is a multiplicator.  A factor of one suppresses the
-multiplicator check.  Otherwise the multiplicator check is performed
-with a suitable factor.  The program concludes with a summary of the
-check results on standard error.  The exit code is 0 (success) if no
-lines had to be filtered out, otherwise 1.
+that probably are.  An optional depth parameter governs the effort to
+be taken for each check.  An optional factor greater than one forces a
+check whether this factor is a multiplier.  A factor of one suppresses
+the multiplier check.  Otherwise the multiplier check is performed with
+a suitable factor.  The program concludes with a summary of the check
+results on standard error.  The exit code is 0 (success) if no lines
+had to be filtered out, otherwise 1.
 
 =head1 AUTHOR
 
