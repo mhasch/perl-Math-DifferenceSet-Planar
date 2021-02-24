@@ -1186,8 +1186,8 @@ Note, however, that the multiplier check as implemented here is based
 on conjectural matter and thus might inaccurately reject some sets.
 
 Bug reports and suggestions are welcome.
-Please submit them through the CPAN RT,
-L<https://rt.cpan.org/NoAuth/ReportBug.html?Queue=Math-DifferenceSet-Planar>.
+Please submit them through the github issue tracker,
+L<https://github.com/mhasch/perl-Math-DifferenceSet-Planar/issues>.
 
 More information for potential contributors can be found in the file
 named F<CONTRIBUTING> in this distribution.
