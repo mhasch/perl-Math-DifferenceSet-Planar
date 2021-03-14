@@ -12,7 +12,7 @@ POD=$DIR/pds_$COUNT.pod
 
 rm -f "$DB" "$POD"
 mkdir -p "$DIR"
-maint/fill_pds -c -f "$DB" data/pdx_*.txt
+bzcat data/pdx_*.txt.bz2 | maint/fill_pds -c -f "$DB"
 maint/make_pod --version=$VER --version_date="$DATE" --name=$NAME \
     --summary='large database with planar difference set samples' \
     <<EOT >"$POD"
