@@ -27,14 +27,14 @@ my $PLACEHOLDERS = $COLUMNS; $PLACEHOLDERS =~ s/[^ ,]+/?/g;
 if ($CREATE_TABLES) {
     $sth =
         $dbh->prepare(
-            qq[CREATE TABLE $TABLE (] .
-            q[  order_   integer NOT NULL PRIMARY KEY,] .
-            q[  base     integer NOT NULL,] .
-            q[  exponent integer NOT NULL,] .
-            q[  modulus  integer NOT NULL,] .
-            q[  n_planes integer NOT NULL,] .
-            q[  deltas   blob    NOT NULL] .
-            q[)]
+            qq[CREATE TABLE $TABLE (\n] .
+            qq[  order_   integer NOT NULL PRIMARY KEY,\n] .
+            qq[  base     integer NOT NULL,\n] .
+            qq[  exponent integer NOT NULL,\n] .
+            qq[  modulus  integer NOT NULL,\n] .
+            qq[  n_planes integer NOT NULL,\n] .
+            qq[  deltas   blob    NOT NULL\n] .
+            qq[)]
         );
     $sth->execute;
 }

@@ -1,0 +1,140 @@
+#!/usr/bin/env perl
+
+# Copyright (c) 2021 Martin Becker, Blaubeuren.
+# This package is free software; you can distribute it and/or modify it
+# under the terms of the Artistic License 2.0 (see LICENSE file).
+
+# create or update rotator base database from text representation of bases
+
+use strict;
+use warnings;
+use Math::Prime::Util qw(gcd is_prime euler_phi);
+use DBI qw(SQL_INTEGER SQL_BLOB);
+
+my $DB_TYPE = 'dbi:SQLite';
+my $DB_CONF = { RaiseError => 1, AutoCommit => 1 };
+
+my ($DB_NAME, $CREATE_TABLE) = process_options();
+
+my $dbh = DBI->connect("$DB_TYPE:dbname=$DB_NAME", q[], q[], $DB_CONF);
+my $sth;
+
+my $TABLE   = 'difference_set_space';
+my $COLUMNS = q[order_, mul_radix, mul_depth, rot_radices, rot_depths];
+my $KEY     = q[order_];
+my $PLACEHOLDERS = $COLUMNS; $PLACEHOLDERS =~ s/[^ ,]+/?/g;
+
+if ($CREATE_TABLE) {
+    $sth =
+        $dbh->prepare(
+            qq[CREATE TABLE $TABLE (\n] .
+            qq[  order_      integer NOT NULL PRIMARY KEY,\n] .
+            qq[  mul_radix   integer NOT NULL,\n] .
+            qq[  mul_depth   integer NOT NULL,\n] .
+            qq[  rot_radices blob    NOT NULL,\n] .
+            qq[  rot_depths  blob    NOT NULL\n] .
+            qq[)]
+        );
+    $sth->execute;
+}
+
+$dbh->begin_work;
+my $error = q[];
+LINE:
+while (<<>>) {
+    chomp;
+    if (/^([1-9][0-9]*)\s+([1-9][0-9]*)\s+[^\[\]]*\[([0-9\s^]+)\]/) {
+        my ($base, $exponent, $rds) = ($1, $2, $3);
+        $error = "$base^$exponent: too large", last
+            if 15 < $exponent * log $base;
+        my $order     = _pow($base, $exponent);
+        my $modulus   = ($order + 1) * $order + 1;
+        my $mul_depth = 3 * $exponent;
+        my @radices   = ();
+        my @depths    = ();
+        my $phi_mod   = euler_phi($modulus);
+        my $phi       = $mul_depth;
+        $error = "$base: not a prime number", last if !is_prime($base);
+        while ($rds =~ /\b([0-9]+)\^([0-9]+)\b/g) {
+            my ($radix, $depth) = ($1, $2);
+            push @radices, $radix;
+            push @depths,  $depth;
+            $phi *= $depth;
+            $error = "$radix: not co-prime to modulus", last LINE
+                if gcd($modulus, $radix) != 1;
+        }
+        if ($phi != $phi_mod) {
+            my $rel = $phi > $phi_mod? 'greater': 'smaller';
+            $error = "dimension $rel than expected";
+            last;
+        }
+        my $packed_radices = pack 'w*', @radices;
+        my $packed_depths  = pack 'w*', @depths;
+        $sth = $dbh->prepare( qq[DELETE FROM $TABLE WHERE $KEY = ?] );
+        $sth->execute($order);
+        $sth =
+            $dbh->prepare(
+                qq[INSERT into $TABLE ($COLUMNS) VALUES ($PLACEHOLDERS)]
+            );
+        $sth->bind_param(1, $order,          SQL_INTEGER);
+        $sth->bind_param(2, $base,           SQL_INTEGER);
+        $sth->bind_param(3, $mul_depth,      SQL_INTEGER);
+        $sth->bind_param(4, $packed_radices, SQL_BLOB   );
+        $sth->bind_param(5, $packed_depths,  SQL_BLOB   );
+        $sth->execute();
+    }
+    else {
+        substr($_, 40) = '...' if 44 < length $_;
+        $error = "$_: strange input";
+        last;
+    }
+}
+if ($error) {
+    $dbh->rollback;
+    $dbh->disconnect;
+    die "line $.: $error (transaction aborted)\n";
+}
+$dbh->commit;
+
+$dbh->do( q[VACUUM] );
+
+$sth = $dbh->prepare( qq[SELECT COUNT(*) FROM $TABLE] );
+$sth->execute;
+my ($count) = $sth->fetchrow_array;
+$sth->finish;
+
+$dbh->disconnect;
+
+my $s = 1 == $count? q[]: q[s];
+print "$DB_NAME has now $count space$s\n";
+
+# integer exponentiation
+sub _pow {
+    my ($base, $exponent) = @_;
+    my $power = 1;
+    while ($exponent) {
+        $power *= $base if 1 & $exponent;
+        $exponent >>= 1 and $base *= $base;
+    }
+    return $power;
+}
+
+sub process_options {
+    my $USAGE = "usage: fill_spaces [-c|-C] [-f dbname] input...\n";
+    my $db_name = 'pds.db';
+    my $create  = 0;
+    while (@ARGV && $ARGV[0] =~ /^-(.+)/s) {
+        my $opt = $1;
+        shift @ARGV;
+        last if $opt eq q[-];
+        $create  =            3, next if $opt eq 'c';
+        $create  =            1, next if $opt eq 'C';
+        $db_name =           $1, next if $opt =~ /^f(.+)\z/s;
+        $db_name = shift(@ARGV), next if $opt eq 'f' && @ARGV;
+        die $USAGE;
+    }
+    if (!($create & 2) xor -e $db_name) {
+        die "$db_name: ", $create & 2? "file exists\n": "nonexistent\n";
+    }
+    return ($db_name, $create & 1);
+}

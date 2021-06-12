@@ -8,13 +8,15 @@ POD=$DIR/pds.pod
 rm -f "$DB" "$POD"
 mkdir -p "$DIR"
 head -n 7 data/pdm_00002-04096.txt | maint/fill_pds -c -f "$DB"
-maint/make_pod --version=1.1 --version_date='September 17, 2019' --name=$NAME \
+head -n 7 data/spc_0000002-0004096.txt | maint/fill_spaces -C -f "$DB"
+maint/make_pod --version=2.0 --version_date='May 9, 2021' --name=$NAME \
     --summary='small database with planar difference set samples' \
     <<'EOT' >"$POD"
 This file is a small sample database only used for testing.
 
-It contains 7 cyclic planar difference sets with orders ranging from
-2 to 9.  The sets are chosen minimal by lexicographic ordering.
+It contains 7 cyclic planar difference sets with orders ranging from 2
+to 9.  The sets are chosen minimal by lexicographic ordering.  It also
+contains planar difference set space data for the same range of orders.
 EOT
 
 NAME=extra.db
@@ -26,13 +28,15 @@ rm -f "$DB" "$POD"
 mkdir -p "$DIR"
 head -n 8 data/pdm_00002-04096.txt |tail -n 1 |
     maint/fill_pds -c -f "$DB"
+head -n 8 data/spc_0000002-0004096.txt |tail -n 1 |
+    maint/fill_spaces -C -f "$DB"
 maint/make_pod --version=1.1 --version_date='September 17, 2019' --name=$NAME \
     --summary='additional database with planar difference set sample' \
     <<'EOT' >"$POD"
 This file is an additional sample database only used for testing.
 
-It contains 1 cyclic planar difference set with order 11.
-The set is chosen minimal by lexicographic ordering.
+It contains 1 cyclic planar difference set with order 11, together with
+all metadata.  The set is chosen minimal by lexicographic ordering.
 EOT
 
 NAME=pds_48.db
@@ -42,7 +46,7 @@ POD=$DIR/pds_48.pod
 
 rm -f "$DB" "$POD"
 mkdir -p "$DIR"
-head -n 48 data/pdx_00002-04096.txt | maint/fill_pds -c -f "$DB"
+bzcat data/pdx_000002-004096.txt.bz2 |head -n 48 | maint/fill_pds -c -f "$DB"
 maint/make_pod --version=1.1 --version_date='September 17, 2019' --name=$NAME \
     --summary='larger database with planar difference set samples' \
     <<'EOT' >"$POD"
@@ -50,5 +54,8 @@ This file is a slightly larger sample database only used for testing.
 
 It contains 48 cyclic planar difference sets with orders ranging from
 2 to 149.  The sets are generated from Conway polynomials.
+
+The database does not contain planar difference set space data introduced
+with version 2.0 so we can test backwards compatibility.
 EOT
 

@@ -11,19 +11,42 @@ use Math::DifferenceSet::Planar::Schema;
 # Math::DifferenceSet::Planar::Data=ARRAY(...)
 
 # .......... index ..........   # .......... value ..........
-use constant _F_DATA     => 0;  # result set object
-use constant _F_PATH     => 1;  # result set object
-use constant _NFIELDS    => 2;
+use constant _F_DATA     => 0;  # difference set result set object
+use constant _F_SPACES   => 1;  # PDS space result set object or undef
+use constant _F_PATH     => 2;  # database path name
+use constant _NFIELDS    => 3;
 
 our $VERSION  = '0.013';
 our @CARP_NOT = qw(Math::DifferenceSet::Planar);
 
 our $DATABASE_DIR = dist_dir('Math-DifferenceSet-Planar');
 
+# ----- private subroutines -----
+
+sub _iterate {
+    my ($domain, $min, $max, @columns) = @_;
+    my @sel = ();
+    my $dir = 'ASC';
+    if (defined($min) && defined($max) && $min > $max) {
+        ($min, $max, $dir) = ($max, $min, 'DESC');
+    }
+    push @sel, '>=' => $min if defined $min;
+    push @sel, '<=' => $max if defined $max;
+    my $results = $domain->search(
+        @sel? { order_ => { @sel } }: undef,
+        {
+            @columns? ( columns => \@columns ): (),
+            order_by => "order_ $dir",
+        }
+    );
+    return sub { $results->next };
+}
+
 # ----- private accessor methods -----
 
-sub _data { $_[0]->[_F_DATA] }
-sub _path { $_[0]->[_F_PATH] }
+sub _data   { $_[0]->[_F_DATA]   }
+sub _spaces { $_[0]->[_F_SPACES] }
+sub _path   { $_[0]->[_F_PATH]   }
 
 # ----- class methods -----
 
@@ -60,7 +83,9 @@ sub new {
     my $data = $schema->resultset('DifferenceSet');
     my $count = eval { $data->search->count };
     croak "bad database: query failed: $@" if !defined $count;
-    return bless [$data, $path], $class;
+    my $spaces = $schema->resultset('DifferenceSetSpace');
+    undef $spaces if !eval { $spaces->search->count };
+    return bless [$data, $spaces, $path], $class;
 }
 
 # ----- object methods -----
@@ -73,44 +98,48 @@ sub get {
     )->single;
 }
 
+sub get_space {
+    my ($this, $order) = @_;
+    my $spaces = $this->_spaces;
+    return undef if !defined $spaces;
+    return $spaces->search({ order_ => $order })->single;
+}
+
 sub iterate {
     my ($this, $min, $max) = @_;
-    my @sel = ();
-    my $dir = 'ASC';
-    if (defined($min) && defined($max) && $min > $max) {
-        ($min, $max, $dir) = ($max, $min, 'DESC');
-    }
-    push @sel, '>=' => $min if defined $min;
-    push @sel, '<=' => $max if defined $max;
-    my $results = $this->_data->search(
-        @sel? { order_ => { @sel } }: undef,
-        { order_by => "order_ $dir" }
-    );
-    return sub { $results->next };
+    return _iterate($this->_data, $min, $max);
 }
 
 sub iterate_properties {
     my ($this, $min, $max) = @_;
-    my @sel = ();
-    my $dir = 'ASC';
-    if (defined($min) && defined($max) && $min > $max) {
-        ($min, $max, $dir) = ($max, $min, 'DESC');
-    }
-    push @sel, '>=' => $min if defined $min;
-    push @sel, '<=' => $max if defined $max;
-    my $results = $this->_data->search(
-        @sel? { order_ => { @sel } }: undef,
-        {
-            columns  => [qw(order_ base exponent modulus n_planes)],
-            order_by => "order_ $dir",
-        }
-    );
-    return sub { $results->next };
+    my @columns = qw(order_ base exponent modulus n_planes);
+    return _iterate($this->_data, $min, $max, @columns);
 }
 
-sub max_order { $_[0]->_data->get_column('order_')->max }
-sub count     { $_[0]->_data->search->count }
-sub path      { $_[0]->_path }
+sub iterate_spaces {
+    my ($this, $min, $max) = @_;
+    my $spaces = $this->_spaces;
+    return sub {} if !defined $spaces;
+    return _iterate($spaces, $min, $max);
+}
+
+sub max_order    { $_[0]->_data->get_column('order_')->max  }
+sub count        { $_[0]->_data->search->count              }
+sub path         { $_[0]->_path                             }
+
+sub sp_max_order {
+    my ($this) = @_;
+    my $spaces = $this->_spaces;
+    return 0 if !defined $spaces;
+    return $spaces->get_column('order_')->max;
+}
+
+sub sp_count {
+    my ($this) = @_;
+    my $spaces = $this->_spaces;
+    return 0 if !defined $spaces;
+    return $spaces->search->count;
+}
 
 1;
 
@@ -152,6 +181,10 @@ Math::DifferenceSet::Planar::Data.
   $max   = $data->max_order;
   $count = $data->count;
   $path  = $data->path;
+
+  $space = $data->get_space(9);
+  $max   = $data->sp_max_order;
+  $count = $data->sp_count;
 
 =head1 DESCRIPTION
 
@@ -254,6 +287,45 @@ in the database.
 If C<$data> is a Math::DifferenceSet::Planar::Data object,
 C<$data-E<gt>path> returns the full path name of the database.
 
+=item I<get_space>
+
+If C<$data> is a Math::DifferenceSet::Planar::Data object,
+C<$data-E<gt>get_space($order)> fetches a difference set space record
+from the database with order C<$order>.  If the database has no space
+record of that order, a false value is returned, otherwise an object of
+type Math::DifferenceSet::Planar::Schema::Result::DifferenceSetSpace.
+
+Databases may contain more or less spaces than difference sets or even
+none at all.  Spaces speed up enumerating difference set planes but are
+not depended on in the rest of the library.
+
+=item I<iterate_spaces>
+
+If C<$data> is a Math::DifferenceSet::Planar::Data object,
+C<$data-E<gt>iterate_spaces> returns a code reference that, repeatedly
+called, returns all planar difference set space records in the database,
+one by one. The iterator returns a false value when it is exhausted.
+
+C<$data-E<gt>iterate($lo, $hi)> returns an iterator over all spaces with
+orders between $lo and $hi (inclusively), ordered by ascending size. If
+C<$lo> is not defined, it is taken as zero. If C<$hi> is omitted or not
+defined, it is taken as plus infinity. If C<$lo> is greater than C<$hi>,
+they are swapped and the sequence is reversed, so that it is ordered by
+descending size.
+
+=item I<sp_max_order>
+
+If C<$data> is a Math::DifferenceSet::Planar::Data object,
+C<$data-E<gt>sp_max_order> returns the order of the largest planar
+difference set space in the database, or zero if no spaces are stored.
+
+=item I<sp_count>
+
+If C<$data> is a Math::DifferenceSet::Planar::Data object,
+C<$data-E<gt>sp_count> returns the number of planar difference set spaces
+in the database.  This may be greater or less than the number of sample
+planar difference sets or even zero.
+
 =back
 
 =head1 DIAGNOSTICS
@@ -290,7 +362,12 @@ L<Math::DifferenceSet::Planar> - the main module of this library.
 =item *
 
 L<Math::DifferenceSet::Planar::Schema::Result::DifferenceSet> -
-the result type for queries.
+the result type for set queries.
+
+=item *
+
+L<Math::DifferenceSet::Planar::Schema::Result::DifferenceSetSpace> -
+the result type for space queries.
 
 =item *
 

@@ -1,0 +1,85 @@
+#!/usr/bin/env perl
+
+# Copyright (c) 2021 Martin Becker, Blaubeuren.
+# This package is free software; you can distribute it and/or modify it
+# under the terms of the Artistic License 2.0 (see LICENSE file).
+
+# get text representation of difference set spaces from database
+
+use strict;
+use warnings;
+use DBD::SQLite::Constants qw(SQLITE_OPEN_READONLY);
+
+my $DB_TYPE = 'dbi:SQLite';
+my $DB_CONF = {
+    RaiseError        => 1,
+    AutoCommit        => 1,
+    sqlite_open_flags => SQLITE_OPEN_READONLY,
+};
+my $NUM_RE  = qr/(0|[1-9][0-9]*|)/;
+my ($DB_NAME, $lo_order, $hi_order) = process_options();
+
+my $TABLE   = 'difference_set_space';
+my $COLUMNS = q[order_, mul_radix, mul_depth, rot_radices, rot_depths];
+my $KEY     = q[order_];
+my $WHERE   = _where_clause($KEY, $lo_order, $hi_order);
+
+my $dbh = DBI->connect("$DB_TYPE:dbname=$DB_NAME", q[], q[], $DB_CONF);
+my $sth = $dbh->prepare(qq[SELECT $COLUMNS FROM $TABLE $WHERE ORDER BY $KEY]);
+$sth->execute;
+while (
+    my ($order, $base, $exp3, $mod_radices, $mod_depths) =
+        $sth->fetchrow_array
+) {
+    my $exponent = $exp3 / 3;
+    my @radices  = unpack 'w*', $mod_radices;
+    my @depths   = unpack 'w*', $mod_depths;
+    if (@radices > @depths) {
+        push @depths, (2) x (@radices - @depths);
+    }
+    elsif (@radices < @depths) {
+        push @radices, ('?') x (@radices - @depths);
+    }
+    my @space = map {; "$radices[$_]^$depths[$_]" } 0 .. $#radices;
+    print "$base $exponent [@space]\n";
+}
+$sth->finish;
+$dbh->disconnect;
+
+sub process_options {
+    my $USAGE = "usage: dump_spaces [-f dbname] [-r [ord_min]-[ord_max]]\n";
+    my $db_name = 'pds.db';
+    my @range   = (q[], q[]);
+    while (@ARGV && $ARGV[0] =~ /^-(.+)/s) {
+        my $opt = $1;
+        shift @ARGV;
+        last if $opt eq q[-];
+        $db_name =           $1, next if $opt =~ /^f(.+)\z/s;
+        $db_name = shift(@ARGV), next if $opt eq 'f' && @ARGV;
+        @range   =     ($1, $2), next if $opt =~ /^r$NUM_RE-$NUM_RE\z/;
+        @range   =     ($1, $2), shift(@ARGV), next
+            if $opt eq 'r' && @ARGV && $ARGV[0] =~ /^$NUM_RE-$NUM_RE\z/;
+        die $USAGE;
+    }
+    if (!-e $db_name) {
+        die "$db_name: nonexistent\n";
+    }
+    return ($db_name, @range);
+}
+
+sub _where_clause {
+    my ($key, $lo_order, $hi_order) = @_;
+    my @selection = ();
+    if ($lo_order ne q[]) {
+        if ($hi_order ne q[]) {
+            push @selection, qq[$key BETWEEN '$lo_order' AND '$hi_order'];
+        }
+        else {
+            push @selection, qq[$key >= '$lo_order'];
+        }
+    }
+    elsif ($hi_order ne q[]) {
+        push @selection, qq[$key <= '$hi_order'];
+    }
+    return @selection? q[WHERE ] . join(q[ AND ], @selection): q[];
+}

@@ -26,6 +26,7 @@ Math::DifferenceSet::Planar::Schema.
 
   $schema = Math::DifferenceSet::Planar::Schema->connect(...);
   $pds    = $schema->resultset('DifferenceSet')->search(...);
+  $spc    = $schema->resultset('DifferenceSetSpace')->search(...);
 
 =head1 DESCRIPTION
 
@@ -44,6 +45,11 @@ L<DBIx::Class::Schema> - base class.
 =item *
 
 L<Math::DifferenceSet::Planar::Schema::Result::DifferenceSet> - result class. 
+
+=item *
+
+L<Math::DifferenceSet::Planar::Schema::Result::DifferenceSetSpace> -
+another result class. 
 
 =back
 

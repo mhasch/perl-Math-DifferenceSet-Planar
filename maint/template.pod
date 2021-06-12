@@ -19,12 +19,20 @@ SQLite 3.x database.
 =head1 SCHEMA
 
   CREATE TABLE difference_set (
-    order_   integer NOT NULL PRIMARY KEY,
-    base     integer NOT NULL,
-    exponent integer NOT NULL,
-    modulus  integer NOT NULL,
-    n_planes integer NOT NULL,
-    deltas   blob    NOT NULL
+    order_      integer NOT NULL PRIMARY KEY,
+    base        integer NOT NULL,
+    exponent    integer NOT NULL,
+    modulus     integer NOT NULL,
+    n_planes    integer NOT NULL,
+    deltas      blob    NOT NULL
+  );
+
+  CREATE TABLE difference_set_space (
+    order_      integer NOT NULL PRIMARY KEY,
+    mul_radix   integer NOT NULL,
+    mul_depth   integer NOT NULL,
+    rot_radices blob    NOT NULL,
+    rot_depths  blob    NOT NULL
   );
 
 =head1 DATA REPRESENTATION
@@ -36,6 +44,10 @@ values packed in 'w*' format, calculated as differences of consecutive
 residue values of I<D> starting with I<d_3 - d_2>.  The difference of
 the smallest two values in a canonical set is always 1 and thus not
 important to store.
+
+If I<a> is an integer coprime to I<m>, and
+I<D' = a E<183> D = { a E<183> d_1, ..., a E<183> d_n } (mod m)>
+is also a planar difference set,  TODO
 
 =head1 PROVIDER
 
