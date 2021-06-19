@@ -12,7 +12,7 @@ use warnings;
 use File::Spec;
 use FindBin;
 
-use Test::More tests => 56;
+use Test::More tests => 61;
 BEGIN { use_ok('Math::DifferenceSet::Planar::Data') };
 
 #########################
@@ -24,9 +24,11 @@ my $TYPE_PREFIX = 'Math::DifferenceSet::Planar::Schema::Result::';
 
 my $data = Math::DifferenceSet::Planar::Data->new;
 isa_ok($data, 'Math::DifferenceSet::Planar::Data');
+is($data->min_order, 2);
 is($data->max_order, 149);
 is($data->count, 48);
 is($data->sp_count, 0);
+is($data->sp_min_order, undef);
 is($data->sp_max_order, 0);
 ok(!$data->iterate_spaces->());
 ok(!$data->get_space(8));
@@ -37,12 +39,14 @@ is("@dbs", 'pds_48.db pds.db extra.db');
 my $extra_path = File::Spec->catfile($FindBin::Bin, 'db', 'extra.db');
 $data = Math::DifferenceSet::Planar::Data->new($extra_path);
 isa_ok($data, 'Math::DifferenceSet::Planar::Data');
+is($data->min_order, 11);
 is($data->max_order, 11);
 is($data->count, 1);
 is($data->path, $extra_path);
 
 $data = Math::DifferenceSet::Planar::Data->new('pds.db');
 isa_ok($data, 'Math::DifferenceSet::Planar::Data');
+is($data->min_order, 2);
 is($data->max_order, 9);
 is($data->count, 7);
 
@@ -153,5 +157,6 @@ while (my $r = $it->()) {
 }
 is("@ords", '2 3 4 5 7 8 9');
 is($data->sp_count, 7);
+is($data->sp_min_order, 2);
 is($data->sp_max_order, 9);
 

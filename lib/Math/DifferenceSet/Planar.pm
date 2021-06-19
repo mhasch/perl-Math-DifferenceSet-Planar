@@ -24,7 +24,7 @@ use constant _F_PEAK      =>  8;    # peak elements arrayref, initially undef
 use constant _F_ETA       =>  9;    # "eta" value, initially undef
 use constant _NFIELDS     => 10;
 
-our $VERSION = '0.013';
+our $VERSION = '0.014';
 
 our $_LOG_MAX_ORDER  = 22.1807;         # limit for integer exponentiation
 our $_MAX_ENUM_COUNT = 32768;           # limit for stored rotator set size
@@ -219,7 +219,7 @@ sub _sort_elements {
 }
 
 #      0  1  2  3  4  5  6  7
-#     28 29 31 41  3  7 14 25 
+#     28 29 31 41  3  7 14 25
 #      L        X           H
 #                  L  X     H
 #                 LX  H
@@ -278,18 +278,6 @@ sub known_space {
     return undef if $order <= 0 || $order > $class->_data->sp_max_order;
     my $spc = $class->_data->get_space($order);
     return !!$spc;
-}
-
-# $max = Math::DifferenceSet::Planar->known_space_max_order;
-sub known_space_max_order {
-    my ($class) = @_;
-    return $class->_data->sp_max_order;
-}
-
-# $count = Math::DifferenceSet::Planar->known_space_count;
-sub known_space_count {
-    my ($class) = @_;
-    return $class->_data->sp_count;
 }
 
 # $ds = Math::DifferenceSet::Planar->new(9);
@@ -461,11 +449,23 @@ sub iterate_available_sets {
     };
 }
 
-# $om = Math::DifferenceSet::Planar->available_max_order;
-sub available_max_order { __PACKAGE__->_data->max_order }
+# $min = Math::DifferenceSet::Planar->available_min_order;
+sub available_min_order   { $_[0]->_data->min_order }
 
-# $ns = Math::DifferenceSet::Planar->available_count;
-sub available_count { __PACKAGE__->_data->count }
+# $max = Math::DifferenceSet::Planar->available_max_order;
+sub available_max_order   { $_[0]->_data->max_order }
+
+# $count = Math::DifferenceSet::Planar->available_count;
+sub available_count       { $_[0]->_data->count }
+
+# $min = Math::DifferenceSet::Planar->known_space_min_order;
+sub known_space_min_order { $_[0]->_data->sp_min_order }
+
+# $max = Math::DifferenceSet::Planar->known_space_max_order;
+sub known_space_max_order { $_[0]->_data->sp_max_order }
+
+# $count = Math::DifferenceSet::Planar->known_space_count;
+sub known_space_count     { $_[0]->_data->sp_count }
 
 # ----- object methods -----
 
@@ -649,7 +649,7 @@ Math::DifferenceSet::Planar - object class for planar difference sets
 
 =head1 VERSION
 
-This documentation refers to version 0.013 of Math::DifferenceSet::Planar.
+This documentation refers to version 0.014 of Math::DifferenceSet::Planar.
 
 =head1 SYNOPSIS
 
@@ -713,8 +713,9 @@ This documentation refers to version 0.013 of Math::DifferenceSet::Planar.
     $m = $ds->modulus;
     print "$o\t$m\n";
   }
-  $om = Math::DifferenceSet::Planar->available_max_order;
-  $ns = Math::DifferenceSet::Planar->available_count;
+  $min   = Math::DifferenceSet::Planar->available_min_order;
+  $max   = Math::DifferenceSet::Planar->available_max_order;
+  $count = Math::DifferenceSet::Planar->available_count;
 
 =head1 DESCRIPTION
 
@@ -927,6 +928,12 @@ it is taken as zero.  If C<$hi> is omitted or not defined, it is taken
 as plus infinity.  If C<$lo> is greater than C<$hi>, they are swapped
 and the sequence is reversed, so that it is ordered by descending size.
 
+=item I<available_min_order>
+
+The class method C<Math::DifferenceSet::Planar-E<gt>available_min_order>
+returns the order of the smallest sample planar difference set currently
+known to the module.
+
 =item I<available_max_order>
 
 The class method C<Math::DifferenceSet::Planar-E<gt>available_max_order>
@@ -951,6 +958,12 @@ otherwise.
 
 The precise meaning of non-zero values returned by I<known_space> is
 implementation specific and should not be relied upon.
+
+=item I<known_space_min_order>
+
+The class method C<Math::DifferenceSet::Planar-E<gt>known_space_min_order>
+returns the smallest order of pre-computed rotator space information
+available to the module, if any, otherwise C<undef>.
 
 =item I<known_space_max_order>
 

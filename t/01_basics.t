@@ -11,7 +11,7 @@ use strict;
 use warnings;
 use File::Spec;
 
-use Test::More tests => 147;
+use Test::More tests => 149;
 BEGIN { use_ok('Math::DifferenceSet::Planar') };
 
 #########################
@@ -379,6 +379,10 @@ my $count = Math::DifferenceSet::Planar->available_count;
 diag("number of available sets is $count");
 like($count, qr/^[1-9][0-9]*\z/);
 
+my $min = Math::DifferenceSet::Planar->available_min_order;
+diag("minimal available order is $min");
+is($min, 2);
+
 my $max = Math::DifferenceSet::Planar->available_max_order;
 diag("maximal available order is $max");
 like($max, qr/^[1-9][0-9]*\z/);
@@ -386,6 +390,16 @@ like($max, qr/^[1-9][0-9]*\z/);
 $count = Math::DifferenceSet::Planar->known_space_count;
 diag("number of known spaces is $count");
 like($count, qr/^(?:0|[1-9][0-9]*)\z/);
+
+$min = Math::DifferenceSet::Planar->known_space_min_order;
+my $qmin = defined($min)? $min: 'undefined';
+diag("minimal known space order is $qmin");
+if($count) {
+    like($min, qr/^[1-9][0-9]*\z/);
+}
+else {
+    ok(!defined $min);
+}
 
 $max = Math::DifferenceSet::Planar->known_space_max_order;
 diag("maximal known space order is $max");

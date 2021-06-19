@@ -4,13 +4,15 @@ use strict;
 use warnings;
 use FindBin;
 
-my $TEMPLATE = "$FindBin::Bin/template.pod";
-my %repl = ();
+my %repl = (
+    TEMPLATE => "$FindBin::Bin/template.pod",
+);
 
 while (@ARGV && $ARGV[0] =~ /^--(\w+)=(.*)/s) {
     shift @ARGV;
     $repl{uc $1} = $2;
 }
+my $TEMPLATE = $repl{'TEMPLATE'};
 
 die "usage: make_pod [--key=value]...\n" if @ARGV;
 

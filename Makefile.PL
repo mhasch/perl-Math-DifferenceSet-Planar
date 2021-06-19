@@ -26,6 +26,7 @@ my %versions = map {
     Math::DifferenceSet::Planar::Data
     Math::DifferenceSet::Planar::Schema
     Math::DifferenceSet::Planar::Schema::Result::DifferenceSet
+    Math::DifferenceSet::Planar::Schema::Result::DifferenceSetSpace
 );
 
 WriteMakefile(

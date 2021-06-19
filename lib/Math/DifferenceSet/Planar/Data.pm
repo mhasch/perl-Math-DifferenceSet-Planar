@@ -16,7 +16,7 @@ use constant _F_SPACES   => 1;  # PDS space result set object or undef
 use constant _F_PATH     => 2;  # database path name
 use constant _NFIELDS    => 3;
 
-our $VERSION  = '0.013';
+our $VERSION  = '0.014';
 our @CARP_NOT = qw(Math::DifferenceSet::Planar);
 
 our $DATABASE_DIR = dist_dir('Math-DifferenceSet-Planar');
@@ -51,7 +51,7 @@ sub _path   { $_[0]->[_F_PATH]   }
 # ----- class methods -----
 
 sub list_databases {
-    opendir my $dh, $DATABASE_DIR or return (); 
+    opendir my $dh, $DATABASE_DIR or return ();
     my @files =
         map {
             my $is_standard = /^pds[_\W]/i? 1: 0;
@@ -77,7 +77,7 @@ sub new {
     -e $path or croak "bad database: file does not exist: $path";
     my $schema =
         Math::DifferenceSet::Planar::Schema->connect(
-            "dbi:SQLite:$path", q[], q[], 
+            "dbi:SQLite:$path", q[], q[],
             { sqlite_open_flags => SQLITE_OPEN_READONLY },
         );
     my $data = $schema->resultset('DifferenceSet');
@@ -123,9 +123,17 @@ sub iterate_spaces {
     return _iterate($spaces, $min, $max);
 }
 
+sub min_order    { $_[0]->_data->get_column('order_')->min  }
 sub max_order    { $_[0]->_data->get_column('order_')->max  }
 sub count        { $_[0]->_data->search->count              }
 sub path         { $_[0]->_path                             }
+
+sub sp_min_order {
+    my ($this) = @_;
+    my $spaces = $this->_spaces;
+    return undef if !defined $spaces;
+    return $spaces->get_column('order_')->min;
+}
 
 sub sp_max_order {
     my ($this) = @_;
@@ -153,7 +161,7 @@ Math::DifferenceSet::Planar::Data - storage of sample planar difference sets
 
 =head1 VERSION
 
-This documentation refers to version 0.013 of
+This documentation refers to version 0.014 of
 Math::DifferenceSet::Planar::Data.
 
 =head1 SYNOPSIS
@@ -178,11 +186,13 @@ Math::DifferenceSet::Planar::Data.
     # ...
   }
 
+  $min   = $data->min_order;
   $max   = $data->max_order;
   $count = $data->count;
   $path  = $data->path;
 
   $space = $data->get_space(9);
+  $min   = $data->sp_min_order;
   $max   = $data->sp_max_order;
   $count = $data->sp_count;
 
@@ -270,6 +280,12 @@ deltas component and thus no access to elements.  Using this method
 to browse difference set properties is more efficient than fetching
 complete records.
 
+=item I<min_order>
+
+If C<$data> is a Math::DifferenceSet::Planar::Data object,
+C<$data-E<gt>min_order> returns the order of the smallest sample planar
+difference set in the database.
+
 =item I<max_order>
 
 If C<$data> is a Math::DifferenceSet::Planar::Data object,
@@ -312,6 +328,12 @@ C<$lo> is not defined, it is taken as zero. If C<$hi> is omitted or not
 defined, it is taken as plus infinity. If C<$lo> is greater than C<$hi>,
 they are swapped and the sequence is reversed, so that it is ordered by
 descending size.
+
+=item I<sp_min_order>
+
+If C<$data> is a Math::DifferenceSet::Planar::Data object,
+C<$data-E<gt>sp_min_order> returns the order of the smallest planar
+difference set space in the database, or C<undef> if no spaces are stored.
 
 =item I<sp_max_order>
 

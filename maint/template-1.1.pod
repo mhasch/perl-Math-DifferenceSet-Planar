@@ -27,14 +27,6 @@ SQLite 3.x database.
     deltas      blob    NOT NULL
   );
 
-  CREATE TABLE difference_set_space (
-    order_      integer NOT NULL PRIMARY KEY,
-    mul_radix   integer NOT NULL,
-    mul_depth   integer NOT NULL,
-    rot_radices blob    NOT NULL,
-    rot_depths  blob    NOT NULL
-  );
-
 =head1 DATA REPRESENTATION
 
 If I<D = { d_1, d_2, ..., d_k } (mod m)> is a canonical cyclic
@@ -44,15 +36,6 @@ values packed in C<'w*'> format, calculated as differences of consecutive
 residue values of I<D> starting with I<d_3 - d_2>.  The difference of
 the smallest two values in a canonical set is always 1 and thus not
 important to store.
-
-If a multiplier set of the form I<{b^k | 0 E<8804> k E<lt> e}>
-with a radix I<b> and depth I<e>, and a rotator base of the form
-I<{r_1^j_1E<183>r_2E<183>j_2E<183>...E<183>r_n^j_n>
-I<| 0 E<8804> j_k E<lt> d_k, 1 E<8804> k E<8804> n}>
-with I<n> radices I<r_k> and I<n> depths I<d_k> describe the
-multiplicative space of difference set planes of a given order,
-I<rot_radices> and I<rot_depths> are vectors of rotation radices and
-depths packed in C<'w*'> format.
 
 =head1 PROVIDER
 
