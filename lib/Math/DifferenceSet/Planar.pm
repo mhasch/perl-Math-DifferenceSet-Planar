@@ -24,7 +24,7 @@ use constant _F_PEAK      =>  8;    # peak elements arrayref, initially undef
 use constant _F_ETA       =>  9;    # "eta" value, initially undef
 use constant _NFIELDS     => 10;
 
-our $VERSION = '0.014';
+our $VERSION = '0.015';
 
 our $_LOG_MAX_ORDER  = 22.1807;         # limit for integer exponentiation
 our $_MAX_ENUM_COUNT = 32768;           # limit for stored rotator set size
@@ -649,7 +649,7 @@ Math::DifferenceSet::Planar - object class for planar difference sets
 
 =head1 VERSION
 
-This documentation refers to version 0.014 of Math::DifferenceSet::Planar.
+This documentation refers to version 0.015 of Math::DifferenceSet::Planar.
 
 =head1 SYNOPSIS
 
