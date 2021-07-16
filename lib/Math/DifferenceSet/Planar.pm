@@ -6,7 +6,7 @@ use Carp qw(croak);
 use Math::DifferenceSet::Planar::Data;
 use Math::BigInt try => 'GMP';
 use Math::Prime::Util qw(
-    is_power is_prime_power euler_phi factor gcd
+    is_power is_prime_power euler_phi factor_exp gcd
     mulmod addmod invmod powmod
 );
 
@@ -137,7 +137,7 @@ sub _sequential_rotators {
         @{$this}[_F_BASE, _F_EXPONENT, _F_MODULUS, _F_N_PLANES];
     my @mult = _multipliers($base, $exponent, $modulus);
     shift @mult;
-    my @pf = factor($modulus);
+    my @pf = map { $_->[0] } factor_exp($modulus);
     pop @pf if $pf[-1] == $modulus;
     my $mx = 0;
     my $x  = 0;
