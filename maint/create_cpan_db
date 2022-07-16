@@ -18,8 +18,10 @@ This file is the default database distributed with the Perl 5 module
 Math::DifferenceSet::Planar.
 
 It contains $COUNT cyclic planar difference sets with orders ranging
-from 2 to $MAX.  The sets are chosen minimal by lexicographic ordering.
-It also contains planar difference set space data for the same range
-of orders.
+from 2 to $MAX.  The sets are chosen minimal by lexicographic ordering
+with priority on small over large elements, so that {0, 1, 3, 9} ranks
+before {0, 1, 4, 6}.  It also contains planar difference set space data
+for the same range of orders.  The radices are chosen with a greedy
+algorithm and not optimized for symmetry.
 EOT
 

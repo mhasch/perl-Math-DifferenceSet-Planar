@@ -7,15 +7,6 @@ use Math::DifferenceSet::Planar;
 
 $| = 1;
 
-my $method = 'elements_sorted';
-while (@ARGV && $ARGV[0] =~ /^-(.+)\z/s) {
-    my $opt = $1;
-    shift @ARGV;
-    last                       if '-' eq $opt;
-    $method = 'elements', next if 'c' eq $opt;
-    die "usage: pds_sort_elements [-c] [file]...\n";
-}
-
 while (<<>>) {
     s/^\s+//;
     my @e = split /\s+/;
@@ -25,29 +16,32 @@ while (<<>>) {
         if grep { !/^(?:0|[1-9][0-9]*)\z/ } @e;
 
     my $s = Math::DifferenceSet::Planar->from_elements(@e);
-    my @e2 = $s->$method;
+
+    my $s2 = $s->gap_canonize;;
+    my @e2 = $s2->elements_sorted;
+
     print "@e2\n";
 }
 
 __END__
 =head1 NAME
 
-pds_sort_elements - numerically sort planar difference set elements
+pds_gap_canonize - translate planar difference sets to smallest values
 
 =head1 SYNOPSIS
 
-  pds_sort_elements [-c] [file]...
+  pds_gap_canonize [file]...
 
 =head1 DESCRIPTION
 
 This example program reads planar difference sets, one per line, as
-integer numbers separated by whitespace, sorts the elements numerically,
-and writes the result to standard output.
+integer numbers separated by whitespace, translates them so that each
+plane is represented by the set with smallest maximum value, and writes
+the result to standard output, with elements sorted numerically in
+ascending order.
 
-With option B<-c>, elements are sorted conventionally instead.
-This means the elements are first sorted numerically and then
-rotated cyclically so that the output starts with the elements
-with difference one.
+This can be used as an alternative to L<pds_canonize> to pick plane
+representatives.
 
 =head1 AUTHOR
 
@@ -55,7 +49,7 @@ Martin Becker, E<lt>becker-cpan-mp I<at> cozap.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2019-2022 by Martin Becker, Blaubeuren.
+Copyright (c) 2022 by Martin Becker, Blaubeuren.
 
 This library is free software; you can distribute it and/or modify it
 under the terms of the Artistic License 2.0 (see the LICENSE file).
