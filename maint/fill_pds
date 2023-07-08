@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# Copyright (c) 2019-2021 Martin Becker, Blaubeuren.
+# Copyright (c) 2019-2023 Martin Becker, Blaubeuren.
 # This package is free software; you can distribute it and/or modify it
 # under the terms of the Artistic License 2.0 (see LICENSE file).
 
@@ -9,119 +9,225 @@
 use strict;
 use warnings;
 use Math::Prime::Util qw(is_prime_power euler_phi);
-use DBI qw(SQL_INTEGER SQL_BLOB);
+use Math::DifferenceSet::Planar;
+use DBI qw(SQL_INTEGER SQL_VARCHAR SQL_BLOB);
+use constant MDP => Math::DifferenceSet::Planar::;
 
 my $DB_TYPE = 'dbi:SQLite';
 my $DB_CONF = { RaiseError => 1, AutoCommit => 1 };
+my $DB_VERSION = [3, 0];
 
-my ($DB_NAME, $CREATE_TABLES) = process_options();
+my ($DB_NAME, $CREATE_TABLES, $UPDATE, $SET_TYPE, $MIN, $MAX) =
+    process_options();
 
 my $dbh = DBI->connect("$DB_TYPE:dbname=$DB_NAME", q[], q[], $DB_CONF);
 my $sth;
 
-my $TABLE   = 'difference_set';
-my $COLUMNS = q[order_, base, exponent, modulus, n_planes, deltas];
-my $KEY     = q[order_];
-my $PLACEHOLDERS = $COLUMNS; $PLACEHOLDERS =~ s/[^ ,]+/?/g;
+my $TABLE = 'difference_set';
+my @COLS  = qw(order_ base delta_main);
+my $KEY          = q[order_];
+my $COLUMNS      = join q[, ], @COLS;
+my $PLACEHOLDERS = join q[, ], ('?') x @COLS;
 
 if ($CREATE_TABLES) {
     $sth =
         $dbh->prepare(
+            qq[CREATE TABLE database_version (\n] .
+            qq[  table_name varchar NOT NULL PRIMARY KEY,\n] .
+            qq[  major      integer NOT NULL,\n] .
+            qq[  minor      integer NOT NULL\n] .
+            qq[)]
+        );
+    $sth->execute;
+    $sth =
+        $dbh->prepare(
+            q[INSERT INTO database_version (table_name, major, minor) ] .
+            q[VALUES (?, ?, ?)]
+        );
+    $sth->bind_param(1, $TABLE,           SQL_VARCHAR);
+    $sth->bind_param(2, $DB_VERSION->[0], SQL_INTEGER);
+    $sth->bind_param(3, $DB_VERSION->[1], SQL_INTEGER);
+    $sth->execute;
+    $sth =
+        $dbh->prepare(
             qq[CREATE TABLE $TABLE (\n] .
-            qq[  order_   integer NOT NULL PRIMARY KEY,\n] .
-            qq[  base     integer NOT NULL,\n] .
-            qq[  exponent integer NOT NULL,\n] .
-            qq[  modulus  integer NOT NULL,\n] .
-            qq[  n_planes integer NOT NULL,\n] .
-            qq[  deltas   blob    NOT NULL\n] .
+            qq[  order_      integer NOT NULL PRIMARY KEY,\n] .
+            qq[  base        integer NOT NULL,\n] .
+            qq[  ref_std     integer NOT NULL DEFAULT 0,\n] .
+            qq[  ref_lex     integer NOT NULL DEFAULT 0,\n] .
+            qq[  ref_gap     integer NOT NULL DEFAULT 0,\n] .
+            qq[  delta_main  blob    NOT NULL\n] .
             qq[)]
         );
     $sth->execute;
 }
 
-$dbh->begin_work;
 while (<<>>) {
     chomp;
-    if (/^([0-9][0-9\s]*[0-9])\s*\(mod ([0-9]+)\)\s*\z/) {
+    if (/^([0-9][0-9\s]*[0-9])\s*(?:\(mod ([0-9]+)\)\s*)?\z/) {
         my $modulus  = $2;
         my $residues = $1;
         my $order    = $residues =~ s/\s+/ /g;
         my $expected = $order * ($order + 1) + 1;
-        if ($expected != $modulus) {
+        if (!defined $modulus) {
+            $modulus = $expected;
+        }
+        elsif ($expected != $modulus) {
             warn
-                "$.: too ",
+                "line $.: too ",
                 $expected < $modulus? 'few': 'many',
                 " elements (ignored)\n";
             next;
         }
+        next if $order < $MIN || defined($MAX) && $MAX < $order;
         my $exponent = is_prime_power($order, \my $base);
         if (!$exponent) {
             warn "$.: order $order is not a prime power (ignored)\n";
             next;
         }
-        my $n_planes = euler_phi($modulus) / (3 * $exponent);
-        $n_planes == int $n_planes or
-            die "assertion failed: $n_planes: n_planes not integer";
         my @r = split / /, $residues;
-        if ($r[0] + 1 != $r[1]) {
-            warn "$.: second element is not first plus one (ignored)\n";
+        my $ds = eval { MDP->from_elements(@r) };
+        if (!defined $ds) {
+            my $diag = $@;
+            warn "$.: @r: apparently not a difference set (ignored)\n";
+            die "$diag\n";
             next;
         }
-        my @deltas = map { $r[$_] - $r[$_-1] } 2 .. $#r;
-        if (grep { $_ <= 0 } @deltas) {
-            warn "$.: elements are not sorted (ignored)\n";
-            next;
-        }
-        my $packed = pack 'w*', @deltas;
-        $sth = $dbh->prepare( qq[DELETE FROM $TABLE WHERE $KEY = ?] );
-        $sth->execute($order);
-        $sth =
-            $dbh->prepare(
-                qq[INSERT into $TABLE ($COLUMNS) VALUES ($PLACEHOLDERS)]
+        if ($UPDATE) {
+            my %cols = qw(z ref_std l ref_lex g ref_gap);
+            my $col  = $cols{$SET_TYPE};
+            my $lambda = $ds->lambda;
+            if ($col eq 'ref_std' or !$ds->lambda) {
+                $sth = $dbh->prepare(
+                    qq[SELECT delta_main FROM $TABLE WHERE $KEY = ?]
+                );
+                $sth->bind_param(1, $order, SQL_INTEGER);
+                $sth->execute;
+                my @dbe;
+                if (my ($delta_main) = $sth->fetchrow_array) {
+                    my $sum = 0;
+                    @dbe = map { $sum += $_ } unpack 'w*', $delta_main;
+                    push @dbe, $ds->plane_derived_elements_of(@dbe);
+                    push @dbe, $ds->plane_fill_elements;
+                    $sth->finish;
+                }
+                else {
+                    warn "order $order set not present (ignored)\n";
+                    next;
+                }
+                my $ref = MDP->from_elements_fast(@dbe);
+                my ($lt) = $ref->find_all_linear_maps($ds);
+                $lambda = $lt->[0];
+            }
+            $sth = $dbh->prepare(
+                qq[UPDATE $TABLE SET $col = ? WHERE $KEY = ?]
             );
-        $sth->bind_param(1, $order,    SQL_INTEGER);
-        $sth->bind_param(2, $base,     SQL_INTEGER);
-        $sth->bind_param(3, $exponent, SQL_INTEGER);
-        $sth->bind_param(4, $modulus,  SQL_INTEGER);
-        $sth->bind_param(5, $n_planes, SQL_INTEGER);
-        $sth->bind_param(6, $packed,   SQL_BLOB   );
-        $sth->execute();
+            $sth->bind_param(1, $lambda, SQL_INTEGER);
+            $sth->bind_param(2, $order,  SQL_INTEGER);
+            $sth->execute;
+        }
+        else {
+            my @pe = $ds->plane_principal_elements;
+            my @se = $ds->plane_supplemental_elements;
+            my @me = (0, sort { $a <=> $b } @pe, @se);
+            my $delta_main = pack 'w*', map { $me[$_] - $me[$_-1] } 1 .. $#me;
+            my $cols = $COLUMNS;
+            my $plho = $PLACEHOLDERS;
+            my $xval = 0;
+            if ($SET_TYPE eq 'z') {
+                $cols .= q[, ref_std];
+                $plho .= q[, ?];
+                $xval  = 1;
+            }
+            elsif ($SET_TYPE eq 'l') {
+                $cols .= q[, ref_lex];
+                $plho .= q[, ?];
+                $xval  = 1;
+            }
+            elsif ($SET_TYPE eq 'g') {
+                $cols .= q[, ref_gap];
+                $plho .= q[, ?];
+                $xval  = 1;
+            }
+            $dbh->begin_work;
+            $sth = $dbh->prepare( qq[DELETE FROM $TABLE WHERE $KEY = ?] );
+            $sth->bind_param(1, $order, SQL_INTEGER);
+            $sth->execute();
+            $sth =
+                $dbh->prepare(
+                    qq[INSERT into $TABLE ($cols) VALUES ($plho)]
+                );
+            $sth->bind_param(1, $order,      SQL_INTEGER);
+            $sth->bind_param(2, $base,       SQL_INTEGER);
+            $sth->bind_param(3, $delta_main, SQL_BLOB   );
+            $sth->bind_param(4, $xval,       SQL_INTEGER) if $xval;
+            $sth->execute();
+            $dbh->commit;
+        }
     }
     else {
         substr($_, 40) = '...' if 44 < length $_;
         warn "$.: $_: strange input (ignored)\n";
     }
 }
-$dbh->commit;
 
 $dbh->do( q[VACUUM] );
 
-$sth = $dbh->prepare( qq[SELECT COUNT(*) FROM $TABLE] );
-$sth->execute;
-my ($count) = $sth->fetchrow_array;
-$sth->finish;
+my ($total, $std, $lex, $gap) =
+    map {
+        $sth = $dbh->prepare(qq[SELECT count(*) FROM $TABLE$_]);
+        $sth->execute;
+        my ($res) = $sth->fetchrow_array;
+        $sth->finish;
+        $res
+    }
+    q[],
+    q[ WHERE ref_std <> 0],
+    q[ WHERE ref_lex <> 0],
+    q[ WHERE ref_gap <> 0];
 
 $dbh->disconnect;
 
-my $s = 1 == $count? q[]: q[s];
-print "$DB_NAME has now $count set$s\n";
+my $s = 1 == $total? q[]: q[s];
+print "$DB_NAME has now $total set$s with $std std, $lex lex, $gap gap refs\n";
 
 sub process_options {
-    my $USAGE = "usage: fill_pds [-c|-C] [-f dbname] input...\n";
+    my $USAGE =
+        "usage: fill_pds [-n|-z|-l|-g] [-a|-c|-C] " .
+        "[-r [min]-[max]] [-f dbname] [file]...\n";
     my $db_name = 'pds.db';
     my $create  = 0;
+    my $update  = 0;
+    my $type    = 'n';
+    my $range   = undef;
+    my @minmax  = (0);
     while (@ARGV && $ARGV[0] =~ /^-(.+)/s) {
         my $opt = $1;
         shift @ARGV;
         last if $opt eq q[-];
-        $create  =            3, next if $opt eq 'c';
-        $create  =            1, next if $opt eq 'C';
-        $db_name =           $1, next if $opt =~ /^f(.+)\z/s;
-        $db_name = shift(@ARGV), next if $opt eq 'f' && @ARGV;
+        $create  = 0, $update = 1, next if $opt eq 'a';
+        $create  = 3, $update = 0, next if $opt eq 'c';
+        $create  = 1, $update = 0, next if $opt eq 'C';
+        $db_name =             $1, next if $opt =~ /^f(.+)\z/s;
+        $db_name =   shift(@ARGV), next if $opt eq 'f' && @ARGV;
+        $type    =           $opt, next if $opt =~ /^[nzlg]\z/;
+        $range   =             $1, next if $opt =~ /^r(.+)\z/s;
+        $range   =   shift(@ARGV), next if $opt eq 'r' && @ARGV;
         die $USAGE;
+    }
+    if (defined $range) {
+        if ($range =~ /^(0|[1-9][0-9]*|)-(0|[1-9][0-9]*|)\z/) {
+            @minmax = ($1 || 0, $2 || ());
+        }
+        else {
+            die $USAGE;
+        }
     }
     if (!($create & 2) xor -e $db_name) {
         die "$db_name: ", $create & 2? "file exists\n": "nonexistent\n";
     }
-    return ($db_name, $create & 1);
+    if ($update && $type eq 'n') {
+        die "specify a type (-z|-l|-g) to augment the database\n";
+    }
+    return ($db_name, $create & 1, $update, $type, @minmax);
 }

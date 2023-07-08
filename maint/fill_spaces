@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# Copyright (c) 2021 Martin Becker, Blaubeuren.
+# Copyright (c) 2021-2023 Martin Becker, Blaubeuren.
 # This package is free software; you can distribute it and/or modify it
 # under the terms of the Artistic License 2.0 (see LICENSE file).
 
@@ -9,12 +9,13 @@
 use strict;
 use warnings;
 use Math::Prime::Util qw(gcd is_prime euler_phi);
-use DBI qw(SQL_INTEGER SQL_BLOB);
+use DBI qw(SQL_INTEGER SQL_VARCHAR SQL_BLOB);
 
 my $DB_TYPE = 'dbi:SQLite';
 my $DB_CONF = { RaiseError => 1, AutoCommit => 1 };
+my $DB_VERSION = [3, 0];
 
-my ($DB_NAME, $CREATE_TABLE) = process_options();
+my ($DB_NAME, $CREATE_TABLE, $MIN, $MAX) = process_options();
 
 my $dbh = DBI->connect("$DB_TYPE:dbname=$DB_NAME", q[], q[], $DB_CONF);
 my $sth;
@@ -36,58 +37,78 @@ if ($CREATE_TABLE) {
             qq[)]
         );
     $sth->execute;
+    $sth =
+        $dbh->prepare(
+            q[INSERT INTO database_version (table_name, major, minor) ] .
+            q[VALUES (?, ?, ?)]
+        );
+    $sth->bind_param(1, $TABLE,           SQL_VARCHAR);
+    $sth->bind_param(2, $DB_VERSION->[0], SQL_INTEGER);
+    $sth->bind_param(3, $DB_VERSION->[1], SQL_INTEGER);
+    $sth->execute;
 }
+
+my $NUM_RE  = qr/([1-9][0-9]*)/;
+my $RDS_RE  = qr/\[([0-9\s^]+)\]/;
+my $LOG_MAX = 15;
 
 $dbh->begin_work;
 my $error = q[];
 LINE:
 while (<<>>) {
+    my ($order, $base, $mul_depth, $rds);
     chomp;
-    if (/^([1-9][0-9]*)\s+([1-9][0-9]*)\s+[^\[\]]*\[([0-9\s^]+)\]/) {
-        my ($base, $exponent, $rds) = ($1, $2, $3);
-        $error = "$base^$exponent: too large", last
-            if 15 < $exponent * log $base;
-        my $order     = _pow($base, $exponent);
-        my $modulus   = ($order + 1) * $order + 1;
-        my $mul_depth = 3 * $exponent;
-        my @radices   = ();
-        my @depths    = ();
-        my $phi_mod   = euler_phi($modulus);
-        my $phi       = $mul_depth;
-        $error = "$base: not a prime number", last if !is_prime($base);
-        while ($rds =~ /\b([0-9]+)\^([0-9]+)\b/g) {
-            my ($radix, $depth) = ($1, $2);
-            push @radices, $radix;
-            push @depths,  $depth;
-            $phi *= $depth;
-            $error = "$radix: not co-prime to modulus", last LINE
-                if gcd($modulus, $radix) != 1;
-        }
-        if ($phi != $phi_mod) {
-            my $rel = $phi > $phi_mod? 'greater': 'smaller';
-            $error = "dimension $rel than expected";
-            last;
-        }
-        my $packed_radices = pack 'w*', @radices;
-        my $packed_depths  = pack 'w*', @depths;
-        $sth = $dbh->prepare( qq[DELETE FROM $TABLE WHERE $KEY = ?] );
-        $sth->execute($order);
-        $sth =
-            $dbh->prepare(
-                qq[INSERT into $TABLE ($COLUMNS) VALUES ($PLACEHOLDERS)]
-            );
-        $sth->bind_param(1, $order,          SQL_INTEGER);
-        $sth->bind_param(2, $base,           SQL_INTEGER);
-        $sth->bind_param(3, $mul_depth,      SQL_INTEGER);
-        $sth->bind_param(4, $packed_radices, SQL_BLOB   );
-        $sth->bind_param(5, $packed_depths,  SQL_BLOB   );
-        $sth->execute();
+    if (/^$NUM_RE\s+$NUM_RE\s+[^\[\]]*$RDS_RE/o) {
+        my $exponent;
+        ($base, $exponent, $rds) = ($1, $2, $3);
+        $error = "$base^$exponent: order too large", last
+            if $LOG_MAX < $exponent * log $base;
+        $order = _pow($base, $exponent);
+        $mul_depth = 3 * $exponent;
+    }
+    elsif (/^$NUM_RE:\s+$NUM_RE\^$NUM_RE\s+$RDS_RE/o) {
+        ($order, $base, $mul_depth, $rds) = ($1, $2, $3, $4);
+        $error = "$order: order too large", last if $LOG_MAX < log $order;
     }
     else {
         substr($_, 40) = '...' if 44 < length $_;
         $error = "$_: strange input";
         last;
     }
+    next if $order < $MIN || defined($MAX) && $MAX < $order;
+    my $modulus   = ($order + 1) * $order + 1;
+    my @radices   = ();
+    my @depths    = ();
+    my $phi_mod   = euler_phi($modulus);
+    my $phi       = $mul_depth;
+    $error = "$base: not a prime number", last if !is_prime($base);
+    while ($rds =~ /\b([0-9]+)\^([0-9]+)\b/g) {
+        my ($radix, $depth) = ($1, $2);
+        push @radices, $radix;
+        push @depths,  $depth;
+        $phi *= $depth;
+        $error = "$radix: not co-prime to modulus", last LINE
+            if gcd($modulus, $radix) != 1;
+    }
+    if ($phi != $phi_mod) {
+        my $rel = $phi > $phi_mod? 'greater': 'smaller';
+        $error = "dimension $rel than expected";
+        last;
+    }
+    my $packed_radices = pack 'w*', @radices;
+    my $packed_depths  = pack 'w*', @depths;
+    $sth = $dbh->prepare( qq[DELETE FROM $TABLE WHERE $KEY = ?] );
+    $sth->execute($order);
+    $sth =
+        $dbh->prepare(
+            qq[INSERT into $TABLE ($COLUMNS) VALUES ($PLACEHOLDERS)]
+        );
+    $sth->bind_param(1, $order,          SQL_INTEGER);
+    $sth->bind_param(2, $base,           SQL_INTEGER);
+    $sth->bind_param(3, $mul_depth,      SQL_INTEGER);
+    $sth->bind_param(4, $packed_radices, SQL_BLOB   );
+    $sth->bind_param(5, $packed_depths,  SQL_BLOB   );
+    $sth->execute();
 }
 if ($error) {
     $dbh->rollback;
@@ -120,9 +141,12 @@ sub _pow {
 }
 
 sub process_options {
-    my $USAGE = "usage: fill_spaces [-c|-C] [-f dbname] input...\n";
+    my $USAGE =
+        "usage: fill_spaces [-c|-C] [-r [min]-[max]] [-f dbname] [file]...\n";
     my $db_name = 'pds.db';
     my $create  = 0;
+    my $range   = undef;
+    my @minmax  = (0);
     while (@ARGV && $ARGV[0] =~ /^-(.+)/s) {
         my $opt = $1;
         shift @ARGV;
@@ -131,10 +155,20 @@ sub process_options {
         $create  =            1, next if $opt eq 'C';
         $db_name =           $1, next if $opt =~ /^f(.+)\z/s;
         $db_name = shift(@ARGV), next if $opt eq 'f' && @ARGV;
+        $range   =           $1, next if $opt =~ /^r(.+)\z/s;
+        $range   = shift(@ARGV), next if $opt eq 'r' && @ARGV;
         die $USAGE;
+    }
+    if (defined $range) {
+        if ($range =~ /^(0|[1-9][0-9]*|)-(0|[1-9][0-9]*|)\z/) {
+            @minmax = ($1 || 0, $2 || ());
+        }
+        else {
+            die $USAGE;
+        }
     }
     if (!($create & 2) xor -e $db_name) {
         die "$db_name: ", $create & 2? "file exists\n": "nonexistent\n";
     }
-    return ($db_name, $create & 1);
+    return ($db_name, $create & 1, @minmax);
 }

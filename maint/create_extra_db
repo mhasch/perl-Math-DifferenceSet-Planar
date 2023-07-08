@@ -1,24 +1,34 @@
 #!/bin/sh
 
-BASENAME=extra_2096993
+BASENAME=extra_2M
 NAME=$BASENAME.db
 DIR=share
 DB=$DIR/$NAME
 POD=$DIR/$BASENAME.pod
+VERSION=3.0
+DATE='May 06, 2023'
 
 rm -f "$DB" "$POD"
 mkdir -p "$DIR"
-bzcat data/$BASENAME.txt.bz2 |maint/fill_pds -c -f "$DB"
-maint/fill_spaces -C -f "$DB" data/spc_extra.txt
-maint/make_pod --version=2.0 --version_date='May 9, 2021' --name=$NAME \
-    --summary='database with a special planar difference set sample' \
+bzcat data/extra_*.txt.bz2 |maint/fill_pds -z -c -f "$DB"
+maint/fill_spaces -C -f "$DB" data/spc_extra_*.txt
+maint/make_pod --version=$VERSION --version_date="$DATE" --name=$NAME \
+    --summary='database with special planar difference set samples' \
     <<'EOT' >"$POD"
 This file is a supplement to the default database distributed
 with the Perl 5 module Math::DifferenceSet::Planar.
 
-It contains one huge cyclic planar difference set of order 2096993,
-together with all metadata, generated from the polynomial x^3+x-11.
-Note that this is not the Conway polynomial, x^3+3*x-3, as the set was
-generated before we chose to prefer Conway polynomials for samples.
+It contains some cyclic planar difference sets with millions of elements
+together with space metadata.  Currently, these are the standard reference
+sets of orders 2096993 and 2097023.
+
+The total numbers of cyclic planar differerence sets of orders
+2096993 and 2097023 are 6,445,655,386,288,147,189,605,602, and
+6,383,441,485,627,927,292,616,300, respectively.  Standard reference
+sets are used to calculate unique I<lambda> and I<theta> values
+identifying each set.  For example, the planar difference set generated
+from the primitive polynomial I<x^3+x-11 (mod 4,397,381,739,043)>
+is the first set, multiplied by I<549,196,322,429 [lambda]>, plus
+I<1,841,964,303,308 [theta]>.
 EOT
 

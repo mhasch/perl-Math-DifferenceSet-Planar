@@ -4,19 +4,29 @@ NAME=pds.db
 DIR=t/db
 DB=$DIR/$NAME
 POD=$DIR/pds.pod
+VERSION=3.0
+DATE='Jan 03, 2023'
+SOURCE=`pwd`/share/pds.db
 
 rm -f "$DB" "$POD"
 mkdir -p "$DIR"
-head -n 7 data/pdm_00002-04096.txt | maint/fill_pds -c -f "$DB"
-head -n 7 data/spc_0000002-0004096.txt | maint/fill_spaces -C -f "$DB"
-maint/make_pod --version=2.0 --version_date='May 9, 2021' --name=$NAME \
+perl -Mlib=lib examples/pds_iterate -z -D "$SOURCE" 2 9 |
+    perl -Mlib=lib maint/fill_pds -z -c -f "$DB"
+perl -Mlib=lib examples/pds_iterate -l -D "$SOURCE" 2 9 |
+    perl -Mlib=lib maint/fill_pds -l -a -f "$DB"
+perl -Mlib=lib examples/pds_iterate -g -D "$SOURCE" 2 9 |
+    perl -Mlib=lib maint/fill_pds -g -a -f "$DB"
+perl -Mlib=lib examples/pds_iterate_spaces -D "$SOURCE" 2 9 |
+    maint/fill_spaces -C -f "$DB"
+maint/make_pod --version=$VERSION --version_date="$DATE" --name=$NAME \
     --summary='small database with planar difference set samples' \
     <<'EOT' >"$POD"
 This file is a small sample database only used for testing.
 
-It contains 7 cyclic planar difference sets with orders ranging from 2
-to 9.  The sets are chosen minimal by lexicographic ordering.  It also
-contains planar difference set space data for the same range of orders.
+It contains 7 cyclic planar difference set planes with orders ranging
+from 2 to 9.  The planes include std, lex and gap reference sets.
+The database also contains planar difference set space data for the same
+range of orders.
 EOT
 
 NAME=extra.db
@@ -26,37 +36,115 @@ POD=$DIR/extra.pod
 
 rm -f "$DB" "$POD"
 mkdir -p "$DIR"
-head -n 8 data/pdm_00002-04096.txt |tail -n 1 |
-    maint/fill_pds -c -f "$DB"
-head -n 8 data/spc_0000002-0004096.txt |tail -n 1 |
+perl -Mlib=lib examples/pds_iterate -l -D "$SOURCE" 11 13 |
+    perl -Mlib=lib maint/fill_pds -l -c -f "$DB"
+perl -Mlib=lib examples/pds_iterate -z -D "$SOURCE" 11 11 |
+    perl -Mlib=lib maint/fill_pds -z -a -f "$DB"
+perl -Mlib=lib examples/pds_iterate -g -D "$SOURCE" 11 11 |
+    perl -Mlib=lib maint/fill_pds -g -a -f "$DB"
+perl -Mlib=lib examples/pds_iterate_spaces -D "$SOURCE" 11 11 |
     maint/fill_spaces -C -f "$DB"
-maint/make_pod --version=2.0 --version_date='May 9, 2021' --name=$NAME \
-    --summary='additional database with planar difference set sample' \
+maint/make_pod --version=$VERSION --version_date="$DATE" --name=$NAME \
+    --summary='additional database with planar difference set samples' \
     <<'EOT' >"$POD"
 This file is an additional sample database only used for testing.
 
-It contains 1 cyclic planar difference set with order 11, together with
-all metadata.  The set is chosen minimal by lexicographic ordering.
+It contains 2 cyclic planar difference set planes with order 11, and 13,
+together with some but not all reference sets and metadata.
 EOT
 
-NAME=pds_48.db
+COUNT=71
+MAX=257
+NAME=pds_$COUNT.db
 DIR=t/db
 DB=$DIR/$NAME
-POD=$DIR/pds_48.pod
+POD=$DIR/pds_$COUNT.pod
 
 rm -f "$DB" "$POD"
 mkdir -p "$DIR"
-bzcat data/pdx_000002-004096.txt.bz2 |head -n 48 | maint/fill_pds -c -f "$DB"
-maint/make_pod --version=1.1 --version_date='September 17, 2019' --name=$NAME \
+cat <<EOT |
+2 1 6
+3 1 0
+4 1 15
+5 17 9
+7 8 7
+8 1 72
+9 1 0
+11 27 123
+13 23 163
+16 1 272
+17 41 116
+19 176 85
+23 66 478
+25 1 526
+27 193 0
+29 220 591
+31 349 258
+32 1 1056
+37 643 1251
+41 99 951
+43 79 444
+47 668 1589
+49 1 1981
+53 1402 1057
+59 374 3168
+61 401 2167
+64 421 4160
+67 1220 1013
+71 2143 3110
+73 2852 2455
+79 1541 5409
+81 44 0
+83 1926 2382
+89 1614 4133
+97 1070 8437
+101 1528 7891
+103 4027 1779
+107 1457 10783
+109 6155 5548
+113 5909 8515
+121 538 13373
+125 1 15727
+127 6490 9730
+128 479 16512
+131 478 12073
+137 3726 10957
+139 12271 10812
+149 11511 5891
+151 10300 8607
+157 3250 22088
+163 6697 20037
+167 12741 14643
+169 10366 737
+173 1 6134
+179 7181 5168
+181 12160 29283
+191 1 13213
+193 6281 27751
+197 204 31138
+199 4051 29675
+211 1 31002
+223 2114 1743
+227 1 44138
+229 32146 1335
+233 10151 12504
+239 13328 46157
+241 28925 19432
+243 7954 0
+251 17842 39730
+256 661 65792
+257 5321 23704
+EOT
+perl -Mlib=lib examples/pds_from_lambda -D "$SOURCE" |
+    perl -Mlib=lib maint/fill_pds -c -f "$DB"
+maint/make_pod --version=$VERSION --version_date="$DATE" --name=$NAME \
     --summary='larger database with planar difference set samples' \
-    --template=maint/template-1.1.pod \
-    <<'EOT' >"$POD"
+    <<EOT >"$POD"
 This file is a slightly larger sample database only used for testing.
 
-It contains 48 cyclic planar difference sets with orders ranging from
-2 to 149.  The sets are generated from Conway polynomials.
-
-The database does not contain planar difference set space data introduced
-with version 2.0 so we can test backwards compatibility.
+It contains $COUNT cyclic planar difference set planes with orders ranging
+from 2 to $MAX.  The sample sets are generated from Conway polynomials.
+Reference sets and space metadata are omitted to facilitate testing
+their absence.
 EOT
 

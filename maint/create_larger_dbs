@@ -1,0 +1,51 @@
+#!/bin/sh
+
+VERSION=3.0
+DATE='Jan 06, 2023'
+DIR=share
+
+while read MAX COUNT L_MAX G_MAX SIZE
+do
+
+case $L_MAX
+in $MAX)        L_QUANT='all planes'
+;; *)           L_QUANT="planes with orders up to $L_MAX"
+esac
+case $G_MAX
+in $MAX)        G_QUANT='all planes'
+;; *)           G_QUANT="planes with orders up to $G_MAX"
+esac
+
+NAME=pds_$COUNT.db
+DB=$DIR/$NAME
+POD=$DIR/pds_$COUNT.pod
+
+rm -f "$DB" "$POD"
+mkdir -p "$DIR"
+maint/fill_pds -z -c -f "$DB" data/pdz_000002-004096.txt
+bzcat data/pdz_*.txt.bz2 | maint/fill_pds -r-$MAX -z -f "$DB"
+maint/fill_pds -l -a -f "$DB" data/pdm_000002-004096.txt
+bzcat data/pdm_*.txt.bz2 | maint/fill_pds -r-$MAX -l -a -f "$DB"
+maint/fill_pds -g -a -f "$DB" data/pdg_000002-004096.txt
+bzcat data/pdg_*.txt.bz2 | maint/fill_pds -r-$MAX -g -a -f "$DB"
+maint/fill_spaces -C -f "$DB" data/spc_0000002-0004096.txt
+bzcat data/spc_*.txt.bz2 |maint/fill_spaces -r-$MAX -f "$DB"
+maint/make_pod --version=$VERSION --version_date="$DATE" --name=$NAME \
+    --summary="size $SIZE database with planar difference set samples" \
+    <<EOT >"$POD"
+This file is a larger alternative to the default database distributed
+with the Perl 5 module Math::DifferenceSet::Planar.
+
+It contains $COUNT cyclic planar difference set planes with orders
+ranging from 2 to $MAX.  For all planes, std reference sets are included.
+For $L_QUANT, lex reference sets are included,
+too.  For $G_QUANT, gap reference sets are
+included, too.  The database also contains planar difference set space
+data for the same range of orders as its planes.
+EOT
+
+done <<EOT
+16384 1961 11069 4297 M
+46337 4875 11069 4297 L
+131449 12400 11069 4297 XL
+EOT
