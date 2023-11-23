@@ -2,6 +2,11 @@ Revision history for Perl extension Math::DifferenceSet::Planar.
 
 1.001   *
         - improved zeta/theta calculation
+        - revised examples suite:
+        - - extended pds_info
+        - - fixed filter mode of pds_planes
+        - - merged random_pds into pds_sample
+        - - fixed exit code of pds_verify (++Lukas Mai)
 
 1.000   Sat, 08 Jul 2023 06:15:12 +0200
         - revised data structure
