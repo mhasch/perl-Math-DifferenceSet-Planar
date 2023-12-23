@@ -151,7 +151,8 @@ pds_info - display information about planar difference sets
 
 =head1 SYNOPSIS
 
-  pds_info [-D database] [-h] [--key]... [file]...
+  pds_info [-D database] [-l limit] [-h] [-a] [--key]... [file]...
+  pds_info -k
 
 =head1 DESCRIPTION
 
@@ -171,11 +172,11 @@ attribute names preceded by two dashes.  In addition to the default
 attributes, these are: n_sets, start_element, peak_elements (yielding
 two output columns), min_element, max_element, largest_gap (yielding
 three output colums of two elements and their difference), eta, zeta,
-theta, lambda, n_mult, n_elems, n_princ, n_suppl, n_deriv, n_fill, elems.
-An unkown value of lambda is replaced by zero (which is not an otherwise
-possible value).
+theta, lambda, n_mult, phi_modulus, n_elems, n_princ, n_suppl, n_deriv,
+n_princ_deriv, n_suppl_deriv n_fill, elems.  An unkown value of lambda
+is replaced by zero (which is not an otherwise possible value).
 
-The first to values of largest_gap can be obtained with the
+The first two values of largest_gap can be obtained with the
 largest_gap_elements attribute and the third value with the
 largest_gap_difference attribute.
 
@@ -301,8 +302,18 @@ For the definition, cf. L<Math::DifferenceSet::Planar>.
 
 =item n_deriv
 
-The number of derived elements of a set's plane.
-For the definition, cf. L<Math::DifferenceSet::Planar>.
+The number of elements derived from principal and supplemental elements
+of a set's plane.  For the definition, cf. L<Math::DifferenceSet::Planar>.
+
+=item n_princ_deriv
+
+The number of elements derived from the principal elements of a set's
+plane.  For the definition, cf. L<Math::DifferenceSet::Planar>.
+
+=item n_suppl_deriv
+
+The number of elements derived from the supplemental elements of a
+set's plane.  For the definition, cf. L<Math::DifferenceSet::Planar>.
 
 =item n_fill
 

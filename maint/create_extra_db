@@ -6,7 +6,7 @@ DIR=share
 DB=$DIR/$NAME
 POD=$DIR/$BASENAME.pod
 VERSION=3.0
-DATE='May 06, 2023'
+DATE='November 28, 2023'
 
 rm -f "$DB" "$POD"
 mkdir -p "$DIR"
@@ -20,15 +20,19 @@ with the Perl 5 module Math::DifferenceSet::Planar.
 
 It contains some cyclic planar difference sets with millions of elements
 together with space metadata.  Currently, these are the standard reference
-sets of orders 2096993 and 2097023.
+sets of orders 2096993, 2097023, and 2097152.
 
 The total numbers of cyclic planar differerence sets of orders
 2096993 and 2097023 are 6,445,655,386,288,147,189,605,602, and
-6,383,441,485,627,927,292,616,300, respectively.  Standard reference
-sets are used to calculate unique I<lambda> and I<theta> values
-identifying each set.  For example, the planar difference set generated
-from the primitive polynomial I<x^3+x-11 (mod 4,397,381,739,043)>
-is the first set, multiplied by I<549,196,322,429 [lambda]>, plus
-I<1,841,964,303,308 [theta]>.
+6,383,441,485,627,927,292,616,300, respectively.  These sets
+have 3 multipliers.  As 2097152 is a 21st power, there are only
+302,819,463,165,789,483,798,528 cyclic planar difference sets of order
+2097152, while these sets have 63 multipliers.
+
+Standard reference sets are used to calculate unique I<lambda>
+and I<theta> values identifying each set.  For example, the
+planar difference set generated from the primitive polynomial
+I<x^3+x-11 (mod 4,397,381,739,043)> is the first set, multiplied by
+I<549,196,322,429 [lambda]>, plus I<1,841,964,303,308 [theta]>.
 EOT
 
