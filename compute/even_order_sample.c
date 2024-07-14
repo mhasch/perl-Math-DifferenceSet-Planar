@@ -1,10 +1,15 @@
 /*
  * even_order_sample.c - generate an order 2^n difference set
  *
- * Copyright (c) 2023 by Martin Becker, Blaubeuren.
+ * Copyright (c) 2023-2024 by Martin Becker, Blaubeuren.
  *
  * This library is free software; you can distribute it and/or modify it
  * under the terms of the Artistic License 2.0 (see the LICENSE file).
+ *
+ * The licence grants freedom for related software development but does
+ * not cover incorporating code or documentation into AI training material.
+ * Please contact the copyright holder if you want to use the library whole
+ * or in part for other purposes than stated in the licence.
  */
 
 #include <stdio.h>
@@ -12,17 +17,17 @@
 #include <math.h>
 #include <stdlib.h>
 
-#define Long long long
 #define L0 0LL
 #define L1 1LL
 
 /*
  * numbers of stored conway polynomials and of slots in prime factor lists
- * (higher orders would be doable but need >64 bit arithmetic for exponents)
  */
-#define NCP 21
-#define NPF 12
+#define NCP 30
+#define NPF 13
+#define NEB 60
 
+typedef long long Long;
 typedef Long Fact[NPF];         /* 0-terminated prime factor list */
 
 /* order 2^(i+1) Conway polynomials in binary representation */
@@ -48,38 +53,120 @@ static Long CP[NCP] = {
     524327,             /* 19 */
     1050355,            /* 20 */
     2097253,            /* 21 */
+    4202337,            /* 22 */
+    8388641,            /* 23 */
+    16901801,           /* 24 */
+    33554757,           /* 25 */
+    67126739,           /* 26 */
+    134223533,          /* 27 */
+    268443877,          /* 28 */
+    536870917,          /* 29 */
+    1073948847,         /* 30 */
 };
 
-/* prime factors of order 2^(i+1) moduli without repetition */
-static Fact PF[NCP] = {
-    {7, 0},
-    {3, 7, 0},
-    {7, 73, 0},
-    {3, 5, 7, 13, 0},
-    {7, 31, 151, 0},
-    {3, 7, 19, 73, 0},
-    {7, 127, 337, 0},
-    {3, 5, 7, 13, 17, 241, 0},
-    {7, 73, 262657, 0},
-    {3, 7, 11, 31, 151, 331, 0},
-    {7, 23, 89, 599479, 0},
-    {3, 5, 7, 13, 19, 37, 73, 109, 0},
-    {7, 79, 8191, 121369, 0},
-    {3, 7, 43, 127, 337, 5419, 0},
-    {7, 31, 73, 151, 631, 23311, 0},
-    {3, 5, 7, 13, 17, 97, 241, 257, 673, 0},
-    {7, 103, 2143, 11119, 131071, 0},
-    {3, 7, 19, 73, 87211, 262657, 0},
-    {7, 32377, 524287, 1212847, 0},
-    {3, 5, 7, 11, 13, 31, 41, 61, 151, 331, 1321, 0},
-    {7, 73, 127, 337, 92737, 649657, 0},
+/* exponents, lower 60 bit */
+static Fact EL[NCP] = {
+    { 1L, 0L},
+    { 9L, 21L, 0L},
+    { 7L, 73L, 0L},
+    { 315L, 585L, 819L, 1365L, 0L},
+    { 217L, 1057L, 4681L, 0L},
+    { 3591L, 13797L, 37449L, 87381L, 0L},
+    { 6223L, 16513L, 299593L, 0L},
+    { 69615L, 986895L, 1290555L, 2396745L, 3355443L, 5592405L, 0L},
+    { 511L, 1838599L, 19173961L, 0L},
+    { 3243933L, 7110873L, 34636833L, 97612893L, 153391689L, 357913941L, 0L},
+    { 14329L, 96516119L, 373475417L, 1227133513L, 0L},
+    { 630453915L, 941362695L, 1857283155L, 3616814565L, 5286113595L,
+      9817068105L, 13743895347L, 22906492245L, 0L},
+    { 4529623L, 67117057L, 6958934353L, 78536544841L, 0L},
+    { 811597437L, 13050583119L, 34630287489L, 102280151421L,
+      628292358729L, 1466015503701L, 0L},
+    { 1509346321L, 55759702201L, 233009086681L, 481977699847L,
+      1134979744801L, 5026338869833L, 0L},
+    { 418239192735L, 1095233372415L, 1167945961455L, 2901803883615L,
+      16557351571215L, 21651921285435L, 40210710958665L, 56294995342131L,
+      93824992236885L, 0L},
+    { 17180000257L, 202518195313L, 1050769861729L, 21862134113449L,
+      321685687669321L, 0L},
+    { 68585259519L, 206561081853L, 246772582321671L, 948126237341157L,
+      2573485501354569L, 6004799503160661L, 0L},
+    { 118823881393L, 274878431233L, 4451159405623L, 20587884010836553L, 0L},
+    { 872764197279975L, 3483146539597725L, 7635241752363225L,
+      18900352534538475L, 28120036697727975L, 37191016277640225L,
+      88686269585142075L, 104811045873349725L, 164703072086692425L,
+      230584300921369395L, 384307168202282325L, 0L},
+    { 14197294936951L, 99457304386111L, 27369056489183311L,
+      72624976668147841L, 126347562148695559L, 164703072086692425L, 0L},
+    { 123085172783097L, 3537755971368759L, 108033640255985661L,
+      829067149380204567L, 1101298153654301589L, 902286394909706329L,
+      164703072086692425L, 384307168202282325L, 0L},
+    { 58720249L, 3307331370614831L, 1030270280712501553L,
+      164703072086692425L, 0L},
+    { 121908420447366735L, 529864617590675631L, 1148137597948727279L,
+      666367475139737243L, 126347562148695559L, 810161057291297875L,
+      667480871088174565L, 1085102592571150095L, 88686269585142075L,
+      164703072086692425L, 230584300921369395L, 384307168202282325L, 0L},
+    { 3575112450587167L, 374787272576235967L, 224054706614323399L,
+      602358323538352663L, 7635241752363225L, 37191016277640225L,
+      164703072086692425L, 0L},
+    { 13512448149528573L, 184343569761639895L, 4504149450301441L,
+      1139412354790875133L, 321066748118362449L, 164703072086692425L,
+      384307168202282325L, 0L},
+    { 24751301355248209L, 1134907174682624511L, 562543471243439825L,
+      892813876301792799L, 126347562148695559L, 164703072086692425L, 0L},
+    { 153760103770322799L, 1151219461418647165L, 609943077314748995L,
+      27369056489183311L, 72624976668147841L, 1081501588392263535L,
+      938424480493945213L, 795118279039204811L, 88686269585142075L,
+      164703072086692425L, 230584300921369395L, 384307168202282325L, 0L},
+    { 15697568566729L, 652503336579024719L, 864829103742905319L,
+      288491691089292625L, 865928168696129703L, 164703072086692425L, 0L},
+    { 2005509207195591L, 685145279195171857L, 78566758634064057L,
+      3483146539597725L, 7635241752363225L, 126347562148695559L,
+      37191016277640225L, 667480871088174565L, 104811045873349725L,
+      164703072086692425L, 384307168202282325L, 0L},
+};
+
+/* exponents, higher 60 bit */
+static Fact EH[NCP] = {
+    { 0L, 0L},
+    { 0L, 0L, 0L},
+    { 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L},
+    { 0L, 0L, 0L, 0L, 0L, 1L, 0L},
+    { 0L, 0L, 0L, 0L, 0L, 2L, 9L, 21L, 0L},
+    { 0L, 0L, 10L, 73L, 0L},
+    { 0L, 9L, 16L, 37L, 56L, 110L, 215L, 240L, 315L, 585L, 819L, 1365L, 0L},
+    { 0L, 0L, 18L, 54L, 217L, 1057L, 4681L, 0L},
+    { 0L, 2L, 32L, 95L, 3318L, 37449L, 87381L, 0L},
+    { 0L, 7L, 29L, 808L, 28728L, 299593L, 0L},
+    { 1161L, 3095L, 11740L, 49784L, 132104L, 148470L, 390167L, 578524L,
+      1290555L, 2396745L, 3355443L, 5592405L, 0L},
+    { 0L, 32132L, 64249L, 121684L, 576041L, 19173961L, 0L},
+    { 57L, 46061L, 1701651L, 3243933L, 7110873L, 14708792L, 34636833L,
+      56512727L, 97612893L, 153391689L, 357913941L, 0L},
 };
 
 static Long *lg;                        /* logarithm table */
 static Long *ex;                        /* inverse logarithm table */
 static Long mb;                         /* 2^n - 1 */
 static Long mo;                         /* modulus */
-static Long m3;                         /* 2^3n - 1 */
 static Long p0, p1, p2;                 /* primitive polynomial coefficients */
 static Long P0, P1, P2;                 /* coefficient logarithms */
 static Long from, until;                /* iteration: from <= i < until */
@@ -88,7 +175,7 @@ static Long start0, start1, start2;     /* start polynomial coefficients */
 /* print a difference set element */
 static void display(Long num)
 {
-    (void) printf("%Ld\n", num);
+    (void) printf("%lld\n", num);
     (void) fflush(stdout);
 }
 
@@ -191,8 +278,8 @@ static void x_pow_n(
     *f = ff;
 }
 
-/* boolean whether x^n is equal to 1 */
-static int x_pow_n_eq_1(Long n)
+/* boolean whether x^(nl + 2^60*nh) is equal to 1 */
+static int x_pow_n_eq_1(Long nl, Long nh)
 {
     Long a = L0;
     Long b = L1;
@@ -200,9 +287,14 @@ static int x_pow_n_eq_1(Long n)
     Long d = L0;
     Long e = L0;
     Long f = L1;
-    while (n) {
-        if (n & L1) multiply(d, e, f, a, b, c, &d, &e, &f);
-        if (n >>= 1) multiply(a, b, c, a, b, c, &a, &b, &c);
+    for (int r = 0; r < NEB; ++r) {
+        if (nl & L1) multiply(d, e, f, a, b, c, &d, &e, &f);
+        nl >>= 1;
+        if (nl || nh) multiply(a, b, c, a, b, c, &a, &b, &c);
+    }
+    while (nh) {
+        if (nh & L1) multiply(d, e, f, a, b, c, &d, &e, &f);
+        if (nh >>= 1) multiply(a, b, c, a, b, c, &a, &b, &c);
     }
     return !d && !e && f == L1;
 }
@@ -245,13 +337,10 @@ static Long evaluate(Long x)
  */
 static void find_pp(int exp)
 {
-    Fact es;                    /* exponents for maximal order check */
-    Long *fs = PF[exp-1];
+    Long *el = EL[exp-1];       /* exponents for maximal order check LO */
+    Long *eh = EH[exp-1];       /* exponents for maximal order check HI */
     int nf = 0;                 /* number of distinct prime factors */
-    while (fs[nf]) ++nf;
-    for (int i = 0; i < nf; ++i) {
-        es[i] = m3 / fs[nf - 1 - i];
-    }
+    while (el[nf] || eh[nf]) ++nf;
     /* iterate over candidate polynomials */
     for (Long ax = L0; ax <= mb; ++ax) {
         Long a = (ax? mb - ax + L1: L0);
@@ -268,7 +357,7 @@ static void find_pp(int exp)
                     continue;
                 }
                 for (int i = 0; i < nf; ++i) {
-                    if (x_pow_n_eq_1(es[i])) {
+                    if (x_pow_n_eq_1(el[i], eh[i])) {
                         goto NEXTPOLY;
                     }
                 }
@@ -292,8 +381,7 @@ static void prepare(int exp, int part, int parts)
     Long ge = CP[exp-1];
     mb = (L1 << exp) - L1;
     mo = (((L1 << exp) + L1) << exp) + L1;
-    m3 = (((mb << exp) | mb) << exp) | mb;
-    if (m3 < 0) bail_out("insufficient word size");
+    if (mo < 0) bail_out("insufficient word size");
     (void) printf("# preparing tables...\n");
     (void) fflush(stdout);
     lg = (Long *) calloc(mb + L1, sizeof (Long));
@@ -308,11 +396,11 @@ static void prepare(int exp, int part, int parts)
         if (y > mb) y ^= ge;
     }
     find_pp(exp);
-    (void) printf("# primitive polynomial is x^3 + %Ld*x^2 + %Ld*x + %Ld\n",
+    (void) printf("# primitive polynomial is x^3 + %lld*x^2 + %lld*x + %lld\n",
         p2, p1, p0);
     (void) fflush(stdout);
     if (!part) {
-        (void) printf("# dry run: none out of %Ld\n", mo);
+        (void) printf("# dry run: none out of %lld\n", mo);
     }
     else if (parts == 1) {
         from = L0;
@@ -320,17 +408,17 @@ static void prepare(int exp, int part, int parts)
         start2 = L0;
         start1 = L0;
         start0 = L1;
-        (void) printf("# complete run: all out of %Ld\n", mo);
+        (void) printf("# complete run: all out of %lld\n", mo);
     }
     else {
         from = mo * (part - 1) / parts;
         until = mo * part / parts;
         if (until <= from) {
-            (void) printf("# partial run %d/%d none out of %Ld\n",
+            (void) printf("# partial run %d/%d none out of %lld\n",
                 part, parts, mo);
             exit(0);
         }
-        (void) printf("# partial run %d/%d from %Ld to %Ld out of %Ld\n",
+        (void) printf("# partial run %d/%d from %lld to %lld out of %lld\n",
             part, parts, from, until - L1, mo);
         x_pow_n(from, &start2, &start1, &start0);
     }
@@ -345,7 +433,7 @@ static void generate()
     Long x1 = start1;
     Long x0 = start0;
     (void) printf(
-        "# x^%Ld = %Ld %Ld %Ld (mod 1 %Ld %Ld %Ld)\n",
+        "# x^%lld = %lld %lld %lld (mod 1 %lld %lld %lld)\n",
         from, start2, start1, start0, p2, p1, p0);
     if (p2) {
         for (Long i = from; i < until; ++i) {
@@ -396,7 +484,7 @@ static void generate()
         }
     }
     (void) printf(
-        "# x^%Ld = %Ld %Ld %Ld (mod 1 %Ld %Ld %Ld)\n",
+        "# x^%lld = %lld %lld %lld (mod 1 %lld %lld %lld)\n",
         until, x2, x1, x0, p2, p1, p0);
     if (until >= mo) (void) printf("\n");
     (void) fflush(stdout);

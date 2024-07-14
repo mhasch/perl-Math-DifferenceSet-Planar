@@ -3,14 +3,14 @@
 use 5.022;
 use strict;
 use warnings;
-use Math::DifferenceSet::Planar 1.000;
+use Math::DifferenceSet::Planar 1.002;
 
 $| = 1;
 
 while (@ARGV && $ARGV[0] =~ /^-(.+)/s) {
     shift @ARGV;
     last if $1 eq '-';
-    die "usage: pds_main_elements [file]...\n";
+    die "usage: pds_unit_elements [file]...\n";
 }
 
 while (<<>>) {
@@ -21,39 +21,34 @@ while (<<>>) {
     die "integer numbers separated by whitespace expected\n"
         if grep { !/^(?:0|[1-9][0-9]*)\z/ } @e;
 
-    my $s = Math::DifferenceSet::Planar->from_elements(@e);
-
-    my $order = $s->order;
-    my @princ = $s->plane_principal_elements;
-    my @suppl = $s->plane_supplemental_elements;
-    my $mod   = $s->modulus;
-
-    print
-        @princ && @suppl? "@princ | @suppl":
-        @princ?           "@princ"         : "| @suppl", " (mod $mod)\n";
+    my $s = Math::DifferenceSet::Planar->from_elements(@e)->zeta_canonize;
+    my @z = $s->plane_unit_elements;
+    if (@z < @e) {
+        push @z, '|', $s->plane_nonunit_elements;
+    }
+    print "@z\n";
 }
 
 __END__
 
 =head1 NAME
 
-pds_main_elements - print main elements of planar difference set planes
+pds_unit_elements - print unit and nonunit plane elements separately
 
 =head1 SYNOPSIS
 
-  pds_main_elements [file]...
+  pds_unit_elements [file]...
 
 =head1 DESCRIPTION
 
 This example program reads planar difference sets, one per line,
-as integer numbers separated by whitespace, computes principal and
-supplemental elements of each plane, and writes the result to standard
-output.  Cf. L<Math::DifferenceSet::Planar> for the definition of
-these sets.
+as integer numbers separated by whitespace, computes unit and nonunit
+elements of the zeta-canonical representative of each plane, and writes
+the result to standard output.  Cf. L<Math::DifferenceSet::Planar>
+for the definition of these sets.
 
-If a set has supplemental elements, they will be separated by a "|"
-from the principal elements.  The modulus is displayed in the form of
-"(mod I<modulus>)" at the end of each output record.
+If a set has nonunit elements, they will be separated by a vertical bar
+from the unit elements.
 
 =head1 AUTHOR
 
@@ -61,7 +56,7 @@ Martin Becker, E<lt>becker-cpan-mp I<at> cozap.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2022-2024 by Martin Becker, Blaubeuren.
+Copyright (c) 2024 by Martin Becker, Blaubeuren.
 
 This library is free software; you can distribute it and/or modify it
 under the terms of the Artistic License 2.0 (see the LICENSE file).

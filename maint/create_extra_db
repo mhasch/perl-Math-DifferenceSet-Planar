@@ -10,8 +10,8 @@ DATE='November 28, 2023'
 
 rm -f "$DB" "$POD"
 mkdir -p "$DIR"
-bzcat data/extra_*.txt.bz2 |maint/fill_pds -z -c -f "$DB"
-maint/fill_spaces -C -f "$DB" data/spc_extra_*.txt
+bzcat data/extra_2??????.txt.bz2 |maint/fill_pds -z -c -f "$DB"
+maint/fill_spaces -C -f "$DB" data/spc_extra_2??????.txt
 maint/make_pod --version=$VERSION --version_date="$DATE" --name=$NAME \
     --summary='database with special planar difference set samples' \
     <<'EOT' >"$POD"
@@ -34,5 +34,26 @@ and I<theta> values identifying each set.  For example, the
 planar difference set generated from the primitive polynomial
 I<x^3+x-11 (mod 4,397,381,739,043)> is the first set, multiplied by
 I<549,196,322,429 [lambda]>, plus I<1,841,964,303,308 [theta]>.
+EOT
+
+BASENAME=extra_4M
+NAME=$BASENAME.db
+DB=$DIR/$NAME
+POD=$DIR/$BASENAME.pod
+DATE='April 24, 2024'
+
+rm -f "$DB" "$POD"
+mkdir -p "$DIR"
+bzcat data/extra_4??????.txt.bz2 |maint/fill_pds -z -c -f "$DB"
+maint/fill_spaces -C -f "$DB" data/spc_extra_4??????.txt
+maint/make_pod --version=$VERSION --version_date="$DATE" --name=$NAME \
+    --summary='database with special planar difference set samples' \
+    <<'EOT' >"$POD"
+This file is a supplement to the default database distributed
+with the Perl 5 module Math::DifferenceSet::Planar.
+
+It contains some cyclic planar difference sets with millions of elements
+together with space metadata.  Currently, these are the standard reference
+sets of orders 4194023 and 4194304.
 EOT
 

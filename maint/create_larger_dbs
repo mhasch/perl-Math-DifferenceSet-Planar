@@ -26,6 +26,7 @@ maint/fill_pds -z -c -f "$DB" data/pdz_000002-004096.txt
 bzcat data/pdz_*.txt.bz2 | maint/fill_pds -r-$MAX -z -f "$DB"
 maint/fill_pds -l -a -f "$DB" data/pdm_000002-004096.txt
 bzcat data/pdm_*.txt.bz2 | maint/fill_pds -r-$MAX -l -a -f "$DB"
+maint/fill_pds -r-$MAX -L -a -f "$DB" data/pdl_*.txt
 maint/fill_pds -g -a -f "$DB" data/pdg_000002-004096.txt
 bzcat data/pdg_*.txt.bz2 | maint/fill_pds -r-$MAX -g -a -f "$DB"
 maint/fill_spaces -C -f "$DB" data/spc_0000002-0004096.txt
@@ -45,7 +46,7 @@ data for the same range of orders as its planes.
 EOT
 
 done <<EOT
-16384 1961 11069 4297 M
-46337 4875 11069 4297 L
-131449 12400 11069 4297 XL
+16384 1961 16384 4297 M
+46337 4875 46337 4297 L
+131449 12400 92681 4297 XL
 EOT
