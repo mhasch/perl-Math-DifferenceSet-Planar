@@ -24,7 +24,7 @@ use Test::More;
 #########################
 
 my $ORDER     = 2096993;
-my $DATABASE  = "extra_$ORDER.db";
+my $DATABASE  = "extra_2M.db";
 
 diag("DB dir: $Math::DifferenceSet::Planar::Data::DATABASE_DIR");
 my $have_data =
