@@ -11,7 +11,7 @@ $| = 1;
 
 my $BAR_WIDTH = 64;
 
-my $USAGE = "usage: pds_find_lex_ref [-f] [-v] [file]...\n";
+my $USAGE = "usage: pds_find_lex_ref [-f] [-p] [file]...\n";
 
 my $force = 0;
 my $pro_b = 0;
