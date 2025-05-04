@@ -18,7 +18,7 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/s) {
     $type = 'known_gap_refs',  next if 'g' eq $opt;
     $type = 'available_sets',  next if 'a' eq $opt;
     $db   = shift(@ARGV),      next if 'D' eq $opt && @ARGV;
-    $db   = $1,                next if $opt =~ /^D(.+)s/;
+    $db   = $1,                next if $opt =~ /^D(.+)/s;
     die $USAGE;
 }
 die $USAGE if 2 < @ARGV || grep {!/^(?:0|[1-9][0-9]*)\z/} @ARGV;

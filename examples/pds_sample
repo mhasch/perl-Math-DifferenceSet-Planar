@@ -24,7 +24,7 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/s) {
     $type = 'gap_reference',  next if 'g' eq $opt;
     $type = 'new', $rand = 1, next if 'r' eq $opt;
     $db   = shift(@ARGV),     next if 'D' eq $opt && @ARGV;
-    $db   = $1,               next if $opt =~ /^D(.+)s/;
+    $db   = $1,               next if $opt =~ /^D(.+)/s;
     $mult = $opt,             next if $opt =~ /^[1-9][0-9]*\z/;
     die $USAGE;
 }

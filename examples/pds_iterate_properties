@@ -22,7 +22,7 @@ while (@ARGV && $ARGV[0] =~ /^-(.+)/s) {
     $head    = 1,            next if 'h' eq $opt;
     $verbose = 1,            next if 'v' eq $opt;
     $db      = shift(@ARGV), next if 'D' eq $opt && @ARGV;
-    $db      = $1,           next if $opt =~ /^D(.+)s/;
+    $db      = $1,           next if $opt =~ /^D(.+)/s;
     die $USAGE;
 }
 die $USAGE if 2 < @ARGV || grep {!/^(?:0|[1-9][0-9]*)\z/} @ARGV;
