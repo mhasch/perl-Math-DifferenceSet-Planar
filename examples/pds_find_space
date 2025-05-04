@@ -37,12 +37,13 @@ if (log(0+$base)*$exponent > _LOG_MAX_ORDER) {
 }
 my $order    = Math::BigInt->new($base)->bpow($exponent);
 my $modulus  = ($order + 1) * $order + 1;
+my $n_planes = Math::BigInt->new(euler_phi($modulus)) / (3 * $exponent);
 if ($modulus <= _MAX_INT) {
     print "# working with native integers\n" if $VERBOSE;
     $order   = $order->numify;
     $modulus = $modulus->numify;
+    $n_planes = $n_planes->numify;
 }
-my $n_planes = euler_phi($modulus) / (3 * $exponent);
 my $max_exp  = _max_exp($modulus, $n_planes);
 print "# order = $order, modulus = $modulus, n_planes = $n_planes\n"
     if $VERBOSE;
