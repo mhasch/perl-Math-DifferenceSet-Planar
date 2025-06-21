@@ -1,8 +1,17 @@
 #!/bin/sh
 
-VERSION=3.0
-DATE='Jan 06, 2023'
+VERSION=3.1
+DATE='Apr 27, 2025'
 DIR=share
+
+needed () {
+    _max=$1; shift
+    echo "$1"; shift
+    for _arg
+    do  _lim=`expr "$_arg"/0 : '[^0-9]*\([0-9][0-9][0-9]*\)'`
+        [ $_lim -le $_max ] && echo "$_arg"
+    done
+}
 
 while read MAX COUNT L_MAX G_MAX SIZE
 do
@@ -23,12 +32,12 @@ POD=$DIR/pds_$COUNT.pod
 rm -f "$DB" "$POD"
 mkdir -p "$DIR"
 maint/fill_pds -z -c -f "$DB" data/pdz_000002-004096.txt
-bzcat data/pdz_*.txt.bz2 | maint/fill_pds -r-$MAX -z -f "$DB"
+bzcat `needed $MAX data/pdz_*.txt.bz2` | maint/fill_pds -r-$MAX -z -f "$DB"
 maint/fill_pds -l -a -f "$DB" data/pdm_000002-004096.txt
-bzcat data/pdm_*.txt.bz2 | maint/fill_pds -r-$MAX -l -a -f "$DB"
+bzcat `needed $MAX data/pdm_*.txt.bz2` | maint/fill_pds -r-$MAX -l -a -f "$DB"
 maint/fill_pds -r-$MAX -L -a -f "$DB" data/pdl_*.txt
 maint/fill_pds -g -a -f "$DB" data/pdg_000002-004096.txt
-bzcat data/pdg_*.txt.bz2 | maint/fill_pds -r-$MAX -g -a -f "$DB"
+maint/fill_pds -r-$MAX -G -a -f "$DB" data/pdG.txt
 maint/fill_spaces -C -f "$DB" data/spc_0000002-0004096.txt
 bzcat data/spc_*.txt.bz2 |maint/fill_spaces -r-$MAX -f "$DB"
 maint/make_pod --version=$VERSION --version_date="$DATE" --name=$NAME \
@@ -46,7 +55,7 @@ data for the same range of orders as its planes.
 EOT
 
 done <<EOT
-16384 1961 16384 4297 M
-46337 4875 46337 4297 L
-131449 12400 92681 4297 XL
+16384 1961 16384 4999 M
+46337 4875 46337 4999 L
+131449 12400 131449 4999 XL
 EOT
