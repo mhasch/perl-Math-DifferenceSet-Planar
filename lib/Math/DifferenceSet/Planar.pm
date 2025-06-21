@@ -33,7 +33,7 @@ use constant _MAX_SMALL_ORDER => int( sqrt(2)*((1<<(_NATIVE_BITS>>1))-0.5) );
 
 *canonize = \&lex_canonize;
 
-our $VERSION = '1.002';
+our $VERSION = '1.003';
 
 our $_MAX_ENUM_COUNT  = 32768;          # limit for stored rotator set size
 our $_MAX_MEMO_COUNT  = 4096;           # limit for memoized values
@@ -1090,8 +1090,7 @@ sub multiply {
             $p = mulmod($p, $base, $modulus);
             $p0 = $p if $p0 > $p;
         }
-        push @princ,
-            _min_factor(mulmod($e, $factor, $modulus), $base, $modulus);
+        push @princ, $p0;
     }
     @princ = sort { $a <=> $b } @princ;
     foreach my $e (@{$this->[_F_SUPPL_ELEMS]}) {
@@ -1361,7 +1360,7 @@ Math::DifferenceSet::Planar - object class for planar difference sets
 
 =head1 VERSION
 
-This documentation refers to version 1.002 of Math::DifferenceSet::Planar.
+This documentation refers to version 1.003 of Math::DifferenceSet::Planar.
 
 =head1 SYNOPSIS
 
@@ -2699,15 +2698,14 @@ extension modules Math::DifferenceSet::Planar::Data::M,
 Math::DifferenceSet::Planar::Data::L,
 Math::DifferenceSet::Planar::Data::XL, etc.
 
-For most planes in the larger collections, gap reference sets
-are not yet computed.  At the time of the 1.002 release, we have computed
-gap reference sets for 644 planes
-only, while standard and lex reference sets are available for all of the 12400
-planes included in the XL database, and even for most of the sets with millions
-of elements provided as an extra.  Lacking more efficient algorithms,
-a substantial extension of gap reference sets would require
-massive computing power, but we expect to at least gradually increase
-their number over time.
+For most planes in the larger collections, gap reference sets are not
+yet computed.  At the time of the 1.003 release, we have computed gap
+reference sets for 716 planes only, while standard and lex reference sets
+are available for all of the 12400 planes included in the XL database,
+and even for most of the sets with millions of elements provided as
+an extra.  Lacking more efficient algorithms, a substantial extension of
+gap reference sets would require massive computing power, but we expect
+to at least gradually increase their number over time.
 
 More important perhaps is double- and triple-checking the data that is
 already present, before it can be regarded as scientifically acceptable.
