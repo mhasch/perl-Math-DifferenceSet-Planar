@@ -56,7 +56,7 @@ space.  Finding such generators is related to finding generators
 of reduced residue systems of modular integers, which is covered in
 algebraic libriaries like Pari/GP (see the I<znstar> function there).
 
-The script F<pds_find_space> in the examples directrory is a pure perl
+The script F<pds_find_space> in the examples directory is a pure perl
 algorithm employing a search for such generators.  It is not particularly
 efficient, though, and would have to be improved to handle larger spaces.
 Contributions are welcome.
