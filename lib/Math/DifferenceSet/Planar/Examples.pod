@@ -25,6 +25,10 @@ besides command line parameters are marked [P].
 
 [P] Generate terms of OEIS A373514.
 
+=item A383574.pl
+
+[P] Generate terms of OEIS A383574.
+
 =item numlist_deltas
 
 [F] Convert lists of numbers to lists of differences and vice versa.
